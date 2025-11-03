@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const dbManager = require('./database/db');
 const { ChatHandler } = require('./src/chat/chatHandler');
+const CommandHandler = require('./backend/commands/commandHandler');
 
 // Import session management and logging
 const sessionManager = require('./services/sessionManager');
@@ -45,6 +46,10 @@ const io = new Server(server, {
 
 // Initialize chat handler
 const chatHandler = new ChatHandler(io);
+
+// Initialize command handler
+const commandHandler = new CommandHandler(io, sessionManager);
+commandHandler.setupCommandNamespace();
 
 // Security middleware
 app.use(helmet());

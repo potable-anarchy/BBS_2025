@@ -38,6 +38,7 @@ class SessionManager {
       lastActivity: new Date().toISOString(),
       activities: [],
       rooms: [],
+      currentBoard: null, // Track current board for command system
     };
 
     this.sessions.set(sessionId, session);
