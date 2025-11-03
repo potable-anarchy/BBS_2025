@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "Full-stack Kanban board with terminal-style UI - React frontend and Node.js backend",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "dev:server": "nodemon server.js",

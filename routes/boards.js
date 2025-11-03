@@ -2,16 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { sanitizeMiddleware } = require('../middleware/sanitize');
 const { validateCreatePost, validateGetPosts, handleValidationErrors } = require('../middleware/validate');
-
-// In-memory data storage (replace with database in production)
-let boards = [
-  { id: '1', name: 'general', description: 'General discussion board', createdAt: new Date().toISOString() },
-  { id: '2', name: 'technology', description: 'Technology and programming', createdAt: new Date().toISOString() },
-  { id: '3', name: 'random', description: 'Random topics', createdAt: new Date().toISOString() }
-];
-
-let posts = [];
-let postIdCounter = 1;
+const dbManager = require('../database/db');
 
 /**
  * GET /boards
@@ -19,6 +10,8 @@ let postIdCounter = 1;
  */
 router.get('/boards', sanitizeMiddleware, (req, res) => {
   try {
+    const boards = dbManager.query('SELECT * FROM boards ORDER BY created_at ASC');
+
     res.json({
       success: true,
       data: boards,
@@ -34,18 +27,28 @@ router.get('/boards', sanitizeMiddleware, (req, res) => {
 });
 
 /**
- * GET /posts?board=:id
+ * GET /posts?board=:boardId
  * Get all posts for a specific board
  */
 router.get('/posts', sanitizeMiddleware, validateGetPosts, handleValidationErrors, (req, res) => {
   try {
     const { board } = req.query;
 
-    // Filter posts by board
-    const boardPosts = posts.filter(post => post.board === board);
-
-    // Sort by creation date (newest first)
-    boardPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Get posts for the specified board (by ID or name)
+    let boardPosts;
+    if (!isNaN(board)) {
+      // If board is a number, query by ID
+      boardPosts = dbManager.query(
+        'SELECT p.*, b.name as board_name FROM posts p JOIN boards b ON p.board_id = b.id WHERE p.board_id = ? ORDER BY p.timestamp DESC',
+        [parseInt(board)]
+      );
+    } else {
+      // If board is a string, query by name
+      boardPosts = dbManager.query(
+        'SELECT p.*, b.name as board_name FROM posts p JOIN boards b ON p.board_id = b.id WHERE b.name = ? ORDER BY p.timestamp DESC',
+        [board]
+      );
+    }
 
     res.json({
       success: true,
@@ -70,31 +73,39 @@ router.post('/post', sanitizeMiddleware, validateCreatePost, handleValidationErr
   try {
     const { title, content, board, author } = req.body;
 
-    // Verify board exists
-    const boardExists = boards.some(b => b.name === board);
-    if (!boardExists) {
+    // Verify board exists and get board ID
+    let boardData;
+    if (!isNaN(board)) {
+      // If board is a number, query by ID
+      boardData = dbManager.queryOne('SELECT * FROM boards WHERE id = ?', [parseInt(board)]);
+    } else {
+      // If board is a string, query by name
+      boardData = dbManager.queryOne('SELECT * FROM boards WHERE name = ?', [board]);
+    }
+
+    if (!boardData) {
       return res.status(404).json({
         success: false,
         error: 'Board not found'
       });
     }
 
-    // Create new post
-    const newPost = {
-      id: String(postIdCounter++),
-      title,
-      content,
-      board,
-      author: author || 'Anonymous',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    // Create new post (note: title and content are combined into message in DB schema)
+    const message = title ? `${title}\n\n${content}` : content;
+    const result = dbManager.run(
+      'INSERT INTO posts (board_id, user, message) VALUES (?, ?, ?)',
+      [boardData.id, author || 'Anonymous', message]
+    );
 
-    posts.push(newPost);
+    // Retrieve the created post
+    const newPost = dbManager.queryOne('SELECT * FROM posts WHERE id = ?', [result.lastInsertRowid]);
 
     res.status(201).json({
       success: true,
-      data: newPost,
+      data: {
+        ...newPost,
+        board_name: boardData.name
+      },
       message: 'Post created successfully'
     });
   } catch (error) {
@@ -106,17 +117,4 @@ router.post('/post', sanitizeMiddleware, validateCreatePost, handleValidationErr
   }
 });
 
-// Export router and data for testing purposes
 module.exports = router;
-
-// Export data access functions for potential future use
-module.exports.getData = () => ({ boards, posts });
-module.exports.resetData = () => {
-  boards = [
-    { id: '1', name: 'general', description: 'General discussion board', createdAt: new Date().toISOString() },
-    { id: '2', name: 'technology', description: 'Technology and programming', createdAt: new Date().toISOString() },
-    { id: '3', name: 'random', description: 'Random topics', createdAt: new Date().toISOString() }
-  ];
-  posts = [];
-  postIdCounter = 1;
-};

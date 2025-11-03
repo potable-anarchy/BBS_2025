@@ -4,6 +4,7 @@ import Terminal from './components/Terminal';
 import XTermTerminal from './components/XTermTerminal';
 import RetroTerminalDemo from './components/RetroTerminalDemo';
 import ModemDialIn from './components/ModemDialIn';
+import BoardList from './components/BoardList';
 import { GlobalStyles } from './styles/GlobalStyles';
 import CRTScreen from './components/CRTScreen';
 import type { CRTConfig } from './styles/crtEffects';
@@ -113,7 +114,7 @@ const SmallToggleButton = styled(ToggleButton)`
   font-size: 12px;
 `;
 
-type TerminalMode = 'retro' | 'custom' | 'xterm' | 'dialin';
+type TerminalMode = 'retro' | 'custom' | 'xterm' | 'dialin' | 'boards';
 
 function App() {
   const [terminalMode, setTerminalMode] = useState<TerminalMode>('dialin');
@@ -199,7 +200,7 @@ function App() {
 
         <ControlsContainer>
           <ToggleButton onClick={() => {
-            const modes: TerminalMode[] = ['dialin', 'retro', 'custom', 'xterm'];
+            const modes: TerminalMode[] = ['dialin', 'boards', 'retro', 'custom', 'xterm'];
             const currentIndex = modes.indexOf(terminalMode);
             const nextIndex = (currentIndex + 1) % modes.length;
             if (modes[nextIndex] === 'dialin') {
@@ -207,7 +208,7 @@ function App() {
             }
             setTerminalMode(modes[nextIndex]);
           }}>
-            Terminal Mode: {terminalMode.toUpperCase()}
+            Mode: {terminalMode.toUpperCase()}
           </ToggleButton>
 
           <CRTControls>
@@ -224,7 +225,15 @@ function App() {
         </ControlsContainer>
 
         <CRTScreen enabled={crtEnabled} config={crtConfig}>
-          {terminalMode === 'retro' ? (
+          {terminalMode === 'boards' ? (
+            <TerminalSection>
+              <SectionTitle>Message Boards</SectionTitle>
+              <BoardList onBoardSelect={(board) => {
+                console.log('Selected board:', board);
+                // TODO: Navigate to board view
+              }} />
+            </TerminalSection>
+          ) : terminalMode === 'retro' ? (
             <RetroTerminalDemo />
           ) : terminalMode === 'custom' ? (
             <TerminalGrid>
