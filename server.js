@@ -4,6 +4,8 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config();
 
+const dbManager = require('./database/db');
+
 // Environment variable validation
 const requiredEnvVars = ['KIRO_API_KEY'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -96,6 +98,15 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
+// Initialize database before starting server
+try {
+  dbManager.initialize();
+  console.log('Database initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize database:', error);
+  process.exit(1);
+}
+
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`WebSocket server is ready for connections`);
@@ -105,6 +116,16 @@ server.listen(PORT, () => {
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, closing server...');
   server.close(() => {
+    dbManager.close();
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, closing server...');
+  server.close(() => {
+    dbManager.close();
     console.log('Server closed');
     process.exit(0);
   });

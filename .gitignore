@@ -56,3 +56,10 @@ coverage
 # OS
 .DS_Store
 Thumbs.db
+
+# Database
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/*.db-shm
+data/*.db-wal
