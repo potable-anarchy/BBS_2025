@@ -3,7 +3,7 @@
  * Parses terminal input into structured commands with BBS-style syntax
  */
 
-import { ParsedCommand } from './types';
+import type { ParsedCommand } from './types';
 
 /**
  * Parse raw terminal input into a structured command

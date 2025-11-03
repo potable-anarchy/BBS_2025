@@ -5,7 +5,7 @@
 
 import { parseCommand, validateInput, sanitizeInput } from './parser';
 import { commandRegistry } from './registry';
-import { CommandContext, CommandResult } from './types';
+import type { CommandContext, CommandResult } from './types';
 import * as fmt from './formatter';
 
 export class CommandExecutor {

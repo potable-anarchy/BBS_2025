@@ -3,7 +3,7 @@
  * Displays available commands and usage information
  */
 
-import { CommandHandler, CommandResult } from '../types';
+import type { CommandHandler, CommandResult } from '../types';
 import * as fmt from '../formatter';
 
 export const helpCommand: CommandHandler = {

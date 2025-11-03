@@ -3,7 +3,7 @@
  * Creates a new post on the current board
  */
 
-import { CommandHandler, CommandContext, CommandResult } from '../types';
+import type { CommandHandler, CommandResult } from '../types';
 import * as fmt from '../formatter';
 
 export const postCommand: CommandHandler = {

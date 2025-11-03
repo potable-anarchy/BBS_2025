@@ -5,9 +5,12 @@ import XTermTerminal from './components/XTermTerminal';
 import RetroTerminalDemo from './components/RetroTerminalDemo';
 import ModemDialIn from './components/ModemDialIn';
 import BoardList from './components/BoardList';
+import { LoginForm, Header } from './components';
 import { GlobalStyles } from './styles/GlobalStyles';
 import CRTScreen from './components/CRTScreen';
 import type { CRTConfig } from './styles/crtEffects';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { useWebSocket } from './hooks/useWebSocket';
 
 const AppContainer = styled.div`
   padding: 40px;
@@ -15,7 +18,7 @@ const AppContainer = styled.div`
   margin: 0 auto;
 `;
 
-const Header = styled.header`
+const PageHeader = styled.header`
   text-align: center;
   margin-bottom: 40px;
 `;
@@ -37,6 +40,12 @@ const Subtitle = styled.p`
   color: #00ff00;
   opacity: 0.8;
   font-size: 16px;
+`;
+
+const MainContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 `;
 
 const TerminalGrid = styled.div`
@@ -116,7 +125,8 @@ const SmallToggleButton = styled(ToggleButton)`
 
 type TerminalMode = 'retro' | 'custom' | 'xterm' | 'dialin' | 'boards';
 
-function App() {
+function AppContent() {
+  const { session, isAuthenticated, connectionStatus, login, logout, setConnectionStatus } = useAuth();
   const [terminalMode, setTerminalMode] = useState<TerminalMode>('dialin');
   const [showDialIn, setShowDialIn] = useState(true);
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
@@ -129,6 +139,12 @@ function App() {
     chromaticAberration: false,
     curvature: false,
     intensity: 'medium',
+  });
+
+  // Initialize WebSocket connection when authenticated
+  useWebSocket({
+    session,
+    onConnectionChange: setConnectionStatus,
   });
 
   const handleCustomCommand = (command: string): string => {
@@ -174,7 +190,17 @@ function App() {
     setCrtConfig({ ...crtConfig, intensity: nextIntensity });
   };
 
-  // Show dial-in animation first
+  // Show login form if not authenticated
+  if (!isAuthenticated || !session) {
+    return (
+      <>
+        <GlobalStyles />
+        <LoginForm onLogin={login} />
+      </>
+    );
+  }
+
+  // Show dial-in animation first (after login)
   if (showDialIn && terminalMode === 'dialin') {
     return (
       <>
@@ -189,59 +215,66 @@ function App() {
     );
   }
 
+  // Show main app when authenticated and dial-in complete
   return (
     <>
       <GlobalStyles />
-      <AppContainer>
-        <Header>
-          <Title>Vibe Kanban Terminal</Title>
-          <Subtitle>A terminal-style UI framework built with React + TypeScript</Subtitle>
-        </Header>
+      <MainContent>
+        <Header
+          handle={session.handle}
+          connectionStatus={connectionStatus}
+          onLogout={logout}
+        />
+        <AppContainer>
+          <PageHeader>
+            <Title>Vibe Kanban Terminal</Title>
+            <Subtitle>A terminal-style UI framework built with React + TypeScript</Subtitle>
+          </PageHeader>
 
-        <ControlsContainer>
-          <ToggleButton onClick={() => {
-            const modes: TerminalMode[] = ['dialin', 'boards', 'retro', 'custom', 'xterm'];
-            const currentIndex = modes.indexOf(terminalMode);
-            const nextIndex = (currentIndex + 1) % modes.length;
-            if (modes[nextIndex] === 'dialin') {
-              setShowDialIn(true);
-            }
-            setTerminalMode(modes[nextIndex]);
-          }}>
-            Mode: {terminalMode.toUpperCase()}
-          </ToggleButton>
+          <ControlsContainer>
+            <ToggleButton onClick={() => {
+              const modes: TerminalMode[] = ['dialin', 'boards', 'retro', 'custom', 'xterm'];
+              const currentIndex = modes.indexOf(terminalMode);
+              const nextIndex = (currentIndex + 1) % modes.length;
+              if (modes[nextIndex] === 'dialin') {
+                setShowDialIn(true);
+              }
+              setTerminalMode(modes[nextIndex]);
+            }}>
+              Mode: {terminalMode.toUpperCase()}
+            </ToggleButton>
 
-          <CRTControls>
-            <CRTLabel>CRT Effects:</CRTLabel>
-            <SmallToggleButton onClick={() => setCrtEnabled(!crtEnabled)}>
-              {crtEnabled ? 'ON' : 'OFF'}
-            </SmallToggleButton>
-            {crtEnabled && (
-              <SmallToggleButton onClick={toggleCrtIntensity}>
-                Intensity: {crtIntensity.toUpperCase()}
+            <CRTControls>
+              <CRTLabel>CRT Effects:</CRTLabel>
+              <SmallToggleButton onClick={() => setCrtEnabled(!crtEnabled)}>
+                {crtEnabled ? 'ON' : 'OFF'}
               </SmallToggleButton>
-            )}
-          </CRTControls>
-        </ControlsContainer>
+              {crtEnabled && (
+                <SmallToggleButton onClick={toggleCrtIntensity}>
+                  Intensity: {crtIntensity.toUpperCase()}
+                </SmallToggleButton>
+              )}
+            </CRTControls>
+          </ControlsContainer>
 
-        <CRTScreen enabled={crtEnabled} config={crtConfig}>
-          {terminalMode === 'boards' ? (
-            <TerminalSection>
-              <SectionTitle>Message Boards</SectionTitle>
-              <BoardList onBoardSelect={(board) => {
-                console.log('Selected board:', board);
-                // TODO: Navigate to board view
-              }} />
-            </TerminalSection>
-          ) : terminalMode === 'retro' ? (
-            <RetroTerminalDemo />
-          ) : terminalMode === 'custom' ? (
-            <TerminalGrid>
+          <CRTScreen enabled={crtEnabled} config={crtConfig}>
+            {terminalMode === 'boards' ? (
               <TerminalSection>
-                <SectionTitle>Custom Terminal Component</SectionTitle>
-                <Terminal
-                  prompt="$"
-                  welcomeMessage={`Welcome to Vibe Kanban Terminal!
+                <SectionTitle>Message Boards</SectionTitle>
+                <BoardList onBoardSelect={(board) => {
+                  console.log('Selected board:', board);
+                  // TODO: Navigate to board view
+                }} />
+              </TerminalSection>
+            ) : terminalMode === 'retro' ? (
+              <RetroTerminalDemo />
+            ) : terminalMode === 'custom' ? (
+              <TerminalGrid>
+                <TerminalSection>
+                  <SectionTitle>Custom Terminal Component</SectionTitle>
+                  <Terminal
+                    prompt="$"
+                    welcomeMessage={`Welcome to Vibe Kanban Terminal!
 Version 1.0.0
 Type "help" for available commands.
 
@@ -250,36 +283,45 @@ Try these custom commands:
   pwd     - Print working directory
   calc    - Calculate expressions (e.g., calc 2 + 2)
 `}
-                  onCommand={handleCustomCommand}
-                />
-              </TerminalSection>
+                    onCommand={handleCustomCommand}
+                  />
+                </TerminalSection>
 
+                <TerminalSection>
+                  <SectionTitle>Simple Terminal</SectionTitle>
+                  <Terminal
+                    prompt=">"
+                    welcomeMessage="Simple terminal ready. Type commands below:"
+                  />
+                </TerminalSection>
+              </TerminalGrid>
+            ) : (
               <TerminalSection>
-                <SectionTitle>Simple Terminal</SectionTitle>
-                <Terminal
-                  prompt=">"
-                  welcomeMessage="Simple terminal ready. Type commands below:"
-                />
-              </TerminalSection>
-            </TerminalGrid>
-          ) : (
-            <TerminalSection>
-              <SectionTitle>XTerm-based Terminal</SectionTitle>
-              <XTermTerminal
-                welcomeMessage={`Welcome to XTerm Terminal!
+                <SectionTitle>XTerm-based Terminal</SectionTitle>
+                <XTermTerminal
+                  welcomeMessage={`Welcome to XTerm Terminal!
 Powered by @xterm/xterm
 Type "help" for available commands.
 
 `}
-                onCommand={(cmd) => {
-                  console.log('Command received:', cmd);
-                }}
-              />
-            </TerminalSection>
-          )}
-        </CRTScreen>
-      </AppContainer>
+                  onCommand={(cmd) => {
+                    console.log('Command received:', cmd);
+                  }}
+                />
+              </TerminalSection>
+            )}
+          </CRTScreen>
+        </AppContainer>
+      </MainContent>
     </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Post as PostType } from '../types/post';
+import type { Post as PostType } from '../types/post';
 import Post from './Post';
 
 interface PostListProps {
@@ -91,7 +91,6 @@ export const PostList: React.FC<PostListProps> = ({
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [boardId, setBoardId] = useState<number | null>(null);
 
   const fetchPosts = async () => {
     try {
@@ -113,7 +112,6 @@ export const PostList: React.FC<PostListProps> = ({
       }
 
       setPosts(data.data || []);
-      setBoardId(data.board_id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
       console.error('Error fetching posts:', err);

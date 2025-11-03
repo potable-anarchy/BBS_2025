@@ -109,3 +109,35 @@ export const terminalTheme = {
 } as const;
 
 export type TerminalTheme = typeof terminalTheme;
+
+// Simple theme for components (compatible with styled-components)
+export const theme = {
+  colors: {
+    background: '#0a0a0a',
+    foreground: '#e5e5e5',
+    primary: '#00ff00',
+    secondary: '#7f7f7f',
+    accent: '#00ffff',
+    error: '#ff0000',
+    warning: '#ffff00',
+    success: '#00ff00',
+    // ANSI colors for terminal styling
+    dim: '#7f7f7f',
+    cyan: '#00cdcd',
+    magenta: '#cd00cd',
+    blue: '#0000ee',
+    yellow: '#cdcd00',
+    red: '#cd0000',
+  },
+  fonts: {
+    mono: "'Cascadia Mono', 'Courier New', monospace",
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    small: '8px',  // Alias for sm
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+  },
+} as const;

@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Post as PostType } from '../types/post';
+import type { Post as PostType } from '../types/post';
 import { formatTimestamp, formatFullTimestamp } from '../utils/dateUtils';
 
 interface PostProps {

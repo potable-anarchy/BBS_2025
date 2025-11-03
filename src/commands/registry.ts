@@ -3,7 +3,7 @@
  * Manages registration and lookup of command handlers
  */
 
-import { CommandHandler, CommandRegistry } from './types';
+import type { CommandHandler, CommandRegistry } from './types';
 import { helpCommand, joinCommand, listCommand, postCommand } from './handlers';
 
 class CommandRegistryManager {

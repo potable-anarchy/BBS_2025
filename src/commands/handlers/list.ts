@@ -3,7 +3,7 @@
  * Lists boards or posts
  */
 
-import { CommandHandler, CommandContext, CommandResult } from '../types';
+import type { CommandHandler, CommandContext, CommandResult } from '../types';
 import * as fmt from '../formatter';
 
 export const listCommand: CommandHandler = {
@@ -28,7 +28,7 @@ export const listCommand: CommandHandler = {
   },
 };
 
-async function listBoards(context: CommandContext): Promise<CommandResult> {
+async function listBoards(_context: CommandContext): Promise<CommandResult> {
   // This will fetch actual boards from the database
   // For now, return mock data with BBS-style formatting
   const boards = [

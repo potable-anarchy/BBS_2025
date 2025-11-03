@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Terminal } from './Terminal';
+import Terminal from './Terminal';
 import { useCommandSystem } from '../hooks/useCommandSystem';
 
 interface CommandTerminalProps {

@@ -4,8 +4,10 @@
  */
 
 import { useCallback, useState, useRef, useEffect } from 'react';
-import { commandExecutor, CommandContext, CommandResult } from '../commands';
-import { io, Socket } from 'socket.io-client';
+import type { CommandContext, CommandResult } from '../commands';
+import { commandExecutor } from '../commands';
+import type { Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 interface CommandSystemConfig {
   username?: string;

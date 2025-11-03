@@ -4,7 +4,7 @@ import styled from 'styled-components';
 interface TerminalProps {
   prompt?: string;
   welcomeMessage?: string;
-  onCommand?: (command: string) => string | void;
+  onCommand?: (command: string) => string | void | Promise<string>;
 }
 
 const TerminalContainer = styled.div`
@@ -116,7 +116,7 @@ const Terminal: React.FC<TerminalProps> = ({
     }
   }, [history]);
 
-  const handleCommand = (cmd: string) => {
+  const handleCommand = async (cmd: string) => {
     const trimmedCmd = cmd.trim();
     if (!trimmedCmd) return;
 
@@ -142,7 +142,7 @@ Type any command to get started!`;
     } else if (trimmedCmd.toLowerCase() === 'date') {
       output = new Date().toString();
     } else if (onCommand) {
-      const result = onCommand(trimmedCmd);
+      const result = await onCommand(trimmedCmd);
       output = result || `Command not recognized: ${trimmedCmd}`;
     } else {
       output = `Command not recognized: ${trimmedCmd}. Type "help" for available commands.`;

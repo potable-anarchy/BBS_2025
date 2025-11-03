@@ -2,7 +2,7 @@
  * API service for interacting with the vibe-kanban backend
  */
 
-import {
+import type {
   Board,
   Post,
   ThreadPost,
@@ -14,7 +14,6 @@ import {
   BoardListResponse,
   BoardResponse,
   SearchResponse,
-  ErrorResponse
 } from '../types/post';
 
 export class ApiService {

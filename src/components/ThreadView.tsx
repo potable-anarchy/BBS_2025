@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { ThreadPost } from '../types/post';
+import type { ThreadPost } from '../types/post';
 import Post from './Post';
 
 interface ThreadViewProps {

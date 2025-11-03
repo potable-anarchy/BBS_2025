@@ -3,7 +3,7 @@
  * Allows users to join a discussion board
  */
 
-import { CommandHandler, CommandContext, CommandResult } from '../types';
+import type { CommandHandler, CommandResult } from '../types';
 import * as fmt from '../formatter';
 
 export const joinCommand: CommandHandler = {
@@ -12,7 +12,7 @@ export const joinCommand: CommandHandler = {
   usage: 'JOIN <board_id>',
   requiresAuth: true,
 
-  execute: async (args, context): Promise<CommandResult> => {
+  execute: async (args, _context): Promise<CommandResult> => {
     if (args.length === 0) {
       return {
         success: false,
