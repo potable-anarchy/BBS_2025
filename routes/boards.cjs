@@ -3,6 +3,7 @@ const router = express.Router();
 const { sanitizeMiddleware } = require('../middleware/sanitize.cjs');
 const { validateCreatePost, validateGetPosts, handleValidationErrors } = require('../middleware/validate.cjs');
 const db = require('../database/db.cjs');
+const kiroHooks = require('../services/kiroHooks.cjs');
 
 /**
  * GET /boards
@@ -334,6 +335,34 @@ router.post('/posts', sanitizeMiddleware, validateCreatePost, handleValidationEr
       message.trim(),
       parentPostId
     );
+
+    // Trigger Kiro on_new_post hook (only for top-level posts, not replies)
+    if (!parentPostId) {
+      kiroHooks.onNewPost({
+        id: newPost.id,
+        user: newPost.user,
+        message: newPost.message,
+        board_id: newPost.board_id,
+        board_name: boardData.name
+      }).then(analysis => {
+        // If Kiro decides to respond, create a post from SYSOP-13
+        if (analysis && analysis.success && analysis.shouldRespond && analysis.response) {
+          try {
+            db.createPost(
+              boardData.id,
+              'SYSOP-13',
+              analysis.response,
+              newPost.id // Reply to the original post
+            );
+            console.log(`SYSOP-13 responded to post ${newPost.id}`);
+          } catch (error) {
+            console.error('Error creating SYSOP-13 response post:', error);
+          }
+        }
+      }).catch(error => {
+        console.error('Error in Kiro new post hook:', error);
+      });
+    }
 
     res.status(201).json({
       success: true,

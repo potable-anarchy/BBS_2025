@@ -6,6 +6,7 @@
 const express = require('express');
 const { body, param, query, validationResult } = require('express-validator');
 const kiroService = require('../services/kiroService.cjs');
+const kiroHooks = require('../services/kiroHooks.cjs');
 const logger = require('../utils/logger.cjs');
 
 const router = express.Router();
@@ -284,5 +285,101 @@ router.get(
     }
   }
 );
+
+/**
+ * GET /api/kiro/hooks/status
+ * Get status of Kiro hooks
+ */
+router.get('/kiro/hooks/status', async (req, res) => {
+  try {
+    const status = kiroHooks.getStatus();
+    res.json({
+      success: true,
+      data: status,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Get hooks status error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to get hooks status',
+      },
+    });
+  }
+});
+
+/**
+ * POST /api/kiro/hooks/enable
+ * Enable Kiro hooks
+ */
+router.post('/kiro/hooks/enable', async (req, res) => {
+  try {
+    kiroHooks.enable();
+    res.json({
+      success: true,
+      message: 'Kiro hooks enabled',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Enable hooks error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to enable hooks',
+      },
+    });
+  }
+});
+
+/**
+ * POST /api/kiro/hooks/disable
+ * Disable Kiro hooks
+ */
+router.post('/kiro/hooks/disable', async (req, res) => {
+  try {
+    kiroHooks.disable();
+    res.json({
+      success: true,
+      message: 'Kiro hooks disabled',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Disable hooks error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to disable hooks',
+      },
+    });
+  }
+});
+
+/**
+ * POST /api/kiro/hooks/idle/trigger
+ * Manually trigger idle event hook
+ */
+router.post('/kiro/hooks/idle/trigger', async (req, res) => {
+  try {
+    const result = await kiroHooks.handleIdleEvent();
+    res.json({
+      success: true,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Trigger idle event error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to trigger idle event',
+      },
+    });
+  }
+});
 
 module.exports = router;

@@ -9,9 +9,10 @@ const dbManager = require('./database/db.cjs');
 const { ChatHandler } = require('./src/chat/chatHandler.cjs');
 const CommandHandler = require('./backend/commands/commandHandler');
 
-// Import session management and logging
+// Import session management, logging, and Kiro hooks
 const sessionManager = require('./services/sessionManager.cjs');
 const logger = require('./utils/logger.cjs');
+const kiroHooks = require('./services/kiroHooks.cjs');
 
 // Environment variable validation
 const requiredEnvVars = ['KIRO_API_KEY'];
@@ -134,6 +135,24 @@ io.on('connection', (socket) => {
     username: session.username,
   });
 
+  // Trigger Kiro on_user_login hook
+  kiroHooks.onUserLogin({
+    username: session.username,
+    socketId: socket.id,
+    sessionId: session.sessionId
+  }).then(greeting => {
+    if (greeting && greeting.success && greeting.greeting) {
+      // Send SYSOP-13 greeting to the user
+      socket.emit('sysop-greeting', {
+        message: greeting.greeting,
+        from: 'SYSOP-13',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }).catch(error => {
+    logger.error('Error in Kiro login hook', { error: error.message });
+  });
+
   // Handle username update
   socket.on('update-username', (newUsername) => {
     const success = sessionManager.updateUsername(socket.id, newUsername);
@@ -254,6 +273,12 @@ try {
   process.exit(1);
 }
 
+// Initialize Kiro hooks
+kiroHooks.initialize().catch(error => {
+  console.error('Failed to initialize Kiro hooks:', error);
+  console.warn('Kiro integration will be disabled');
+});
+
 server.listen(PORT, () => {
   logger.info('Server started', {
     port: PORT,
@@ -267,6 +292,7 @@ server.listen(PORT, () => {
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, initiating graceful shutdown');
 
+  kiroHooks.cleanup();
   server.close(() => {
     dbManager.close();
     logger.info('Server closed successfully');
@@ -277,6 +303,7 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, closing server...');
+  kiroHooks.cleanup();
   server.close(() => {
     dbManager.close();
     console.log('Server closed');
