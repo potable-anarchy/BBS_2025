@@ -1,0 +1,39 @@
+services:
+  # Web service for the full-stack application
+  - type: web
+    name: vibe-kanban
+    runtime: node
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: KIRO_API_KEY
+        sync: false
+      - key: KIRO_API_URL
+        value: https://api.kiro.ai/v1
+      - key: KIRO_TIMEOUT
+        value: 30000
+      - key: DATABASE_PATH
+        value: /data/kanban.db
+      - key: LOG_LEVEL
+        value: INFO
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # Disk for persistent database storage
+databases: []
+
+# Note: Since we're using better-sqlite3 which requires a file system,
+# we'll use Render's persistent disk feature. You'll need to add this
+# via the Render dashboard:
+# 1. Go to your service settings
+# 2. Add a disk mount at /data
+# 3. Set size (e.g., 1GB should be sufficient)

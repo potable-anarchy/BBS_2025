@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -52,12 +53,27 @@ const chatHandler = new ChatHandler(io);
 const commandHandler = new CommandHandler(io, sessionManager);
 commandHandler.setupCommandNamespace();
 
-// Security middleware
-app.use(helmet());
+// Security middleware (with CSP adjusted for production)
+app.use(helmet({
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  } : false,
+}));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Serve static files from Vite build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, 'dist')));
+}
 
 // Basic health check endpoint
 app.get('/health', (req, res) => {
@@ -257,10 +273,17 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
+// Serve index.html for all other routes in production (SPA support)
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  });
+} else {
+  // 404 handler for development
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 
