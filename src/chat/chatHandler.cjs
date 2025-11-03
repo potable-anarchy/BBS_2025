@@ -1,5 +1,5 @@
-const { validateBoardAccess, validateMessage } = require('./middleware');
-const { SessionManager } = require('./sessionManager');
+const { validateBoardAccess, validateMessage } = require('./middleware.cjs');
+const { SessionManager } = require('./sessionManager.cjs');
 
 class ChatHandler {
   constructor(io) {

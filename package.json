@@ -5,11 +5,11 @@
   "description": "Full-stack Kanban board with terminal-style UI - React frontend and Node.js backend",
   "scripts": {
     "dev": "vite",
-    "dev:server": "nodemon server.js",
+    "dev:server": "nodemon server.cjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "start": "node server.js",
+    "start": "node server.cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
