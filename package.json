@@ -1,25 +1,54 @@
 {
-  "name": "ea97-set-up-node-js-b",
+  "name": "vibe-kanban",
   "version": "1.0.0",
-  "description": "Node.js backend with Express and Socket.IO for real-time communication",
-  "main": "server.js",
+  "private": true,
+  "description": "Full-stack Kanban board with terminal-style UI - React frontend and Node.js backend",
+  "type": "module",
   "scripts": {
+    "dev": "vite",
+    "dev:server": "nodemon server.js",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
     "start": "node server.js",
-    "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "kanban",
+    "terminal",
+    "react",
+    "typescript",
+    "vite",
+    "socket.io",
+    "express"
+  ],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "license": "MIT",
   "dependencies": {
+    "@xterm/xterm": "^5.5.0",
     "better-sqlite3": "^12.4.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "socket.io": "^4.8.1"
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "socket.io": "^4.8.1",
+    "styled-components": "^6.1.19"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^24.6.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@types/styled-components": "^5.1.35",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "nodemon": "^3.1.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "^7.1.7"
   }
 }
