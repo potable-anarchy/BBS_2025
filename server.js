@@ -5,6 +5,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const dbManager = require('./database/db');
+const { ChatHandler } = require('./src/chat/chatHandler');
 
 // Environment variable validation
 const requiredEnvVars = ['KIRO_API_KEY'];
@@ -32,8 +33,13 @@ app.use(cors(corsOptions));
 
 // Socket.IO setup with CORS
 const io = new Server(server, {
-  cors: corsOptions
+  cors: corsOptions,
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
+
+// Initialize chat handler
+const chatHandler = new ChatHandler(io);
 
 // Middleware
 app.use(express.json());
@@ -49,7 +55,33 @@ app.get('/api', (req, res) => {
   res.json({ message: 'API is running' });
 });
 
-// Socket.IO connection handling
+// Chat stats endpoint
+app.get('/api/chat/stats', (req, res) => {
+  const stats = chatHandler.sessionManager.getStats();
+  res.json(stats);
+});
+
+// Get board connections
+app.get('/api/chat/boards/:boardId/users', (req, res) => {
+  const { boardId } = req.params;
+  const users = chatHandler.getBoardConnections(boardId);
+  res.json({ boardId, users });
+});
+
+// Broadcast message to board (admin endpoint)
+app.post('/api/chat/boards/:boardId/broadcast', (req, res) => {
+  const { boardId } = req.params;
+  const { event, data } = req.body;
+
+  if (!event || !data) {
+    return res.status(400).json({ error: 'Event and data are required' });
+  }
+
+  chatHandler.broadcastToBoard(boardId, event, data);
+  res.json({ success: true, boardId, event });
+});
+
+// Default Socket.IO connection handling (for backward compatibility)
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
