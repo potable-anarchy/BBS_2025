@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import Terminal from './components/Terminal';
 import XTermTerminal from './components/XTermTerminal';
 import RetroTerminalDemo from './components/RetroTerminalDemo';
+import ModemDialIn from './components/ModemDialIn';
 import { GlobalStyles } from './styles/GlobalStyles';
 import CRTScreen from './components/CRTScreen';
 import type { CRTConfig } from './styles/crtEffects';
@@ -112,10 +113,11 @@ const SmallToggleButton = styled(ToggleButton)`
   font-size: 12px;
 `;
 
-type TerminalMode = 'retro' | 'custom' | 'xterm';
+type TerminalMode = 'retro' | 'custom' | 'xterm' | 'dialin';
 
 function App() {
-  const [terminalMode, setTerminalMode] = useState<TerminalMode>('retro');
+  const [terminalMode, setTerminalMode] = useState<TerminalMode>('dialin');
+  const [showDialIn, setShowDialIn] = useState(true);
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
   const [crtIntensity, setCrtIntensity] = useState<'low' | 'medium' | 'high'>('medium');
   const [crtConfig, setCrtConfig] = useState<Partial<CRTConfig>>({
@@ -171,6 +173,21 @@ function App() {
     setCrtConfig({ ...crtConfig, intensity: nextIntensity });
   };
 
+  // Show dial-in animation first
+  if (showDialIn && terminalMode === 'dialin') {
+    return (
+      <>
+        <GlobalStyles />
+        <CRTScreen enabled={crtEnabled} config={crtConfig}>
+          <ModemDialIn onComplete={() => {
+            setShowDialIn(false);
+            setTerminalMode('retro');
+          }} />
+        </CRTScreen>
+      </>
+    );
+  }
+
   return (
     <>
       <GlobalStyles />
@@ -182,9 +199,12 @@ function App() {
 
         <ControlsContainer>
           <ToggleButton onClick={() => {
-            const modes: TerminalMode[] = ['retro', 'custom', 'xterm'];
+            const modes: TerminalMode[] = ['dialin', 'retro', 'custom', 'xterm'];
             const currentIndex = modes.indexOf(terminalMode);
             const nextIndex = (currentIndex + 1) % modes.length;
+            if (modes[nextIndex] === 'dialin') {
+              setShowDialIn(true);
+            }
             setTerminalMode(modes[nextIndex]);
           }}>
             Terminal Mode: {terminalMode.toUpperCase()}
