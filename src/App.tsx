@@ -5,6 +5,7 @@ import XTermTerminal from './components/XTermTerminal';
 import RetroTerminalDemo from './components/RetroTerminalDemo';
 import ModemDialIn from './components/ModemDialIn';
 import BoardList from './components/BoardList';
+import BulletinBoard from './components/BulletinBoard';
 import { LoginForm, Header } from './components';
 import { GlobalStyles } from './styles/GlobalStyles';
 import CRTScreen from './components/CRTScreen';
@@ -259,13 +260,18 @@ function AppContent() {
 
           <CRTScreen enabled={crtEnabled} config={crtConfig}>
             {terminalMode === 'boards' ? (
-              <TerminalSection>
-                <SectionTitle>Message Boards</SectionTitle>
-                <BoardList onBoardSelect={(board) => {
-                  console.log('Selected board:', board);
-                  // TODO: Navigate to board view
-                }} />
-              </TerminalSection>
+              <>
+                <TerminalSection>
+                  <BulletinBoard limit={5} />
+                </TerminalSection>
+                <TerminalSection>
+                  <SectionTitle>Message Boards</SectionTitle>
+                  <BoardList onBoardSelect={(board) => {
+                    console.log('Selected board:', board);
+                    // TODO: Navigate to board view
+                  }} />
+                </TerminalSection>
+              </>
             ) : terminalMode === 'retro' ? (
               <RetroTerminalDemo />
             ) : terminalMode === 'custom' ? (

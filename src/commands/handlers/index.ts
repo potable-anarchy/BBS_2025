@@ -7,3 +7,4 @@ export { helpCommand } from './help';
 export { joinCommand } from './join';
 export { listCommand } from './list';
 export { postCommand } from './post';
+export { newsCommand } from './news';

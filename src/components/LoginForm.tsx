@@ -6,6 +6,7 @@ import { useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
+import BulletinBoard from './BulletinBoard';
 
 interface LoginFormProps {
   onLogin: (handle: string) => void;
@@ -194,6 +195,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       <LoginBox>
         <Title>VIBE KANBAN</Title>
         <Subtitle>Terminal-based collaborative task board</Subtitle>
+
+        <BulletinBoard showLatestOnly={true} compact={true} />
 
         <Form onSubmit={handleSubmit}>
           <InputGroup>

@@ -14,6 +14,8 @@ import type {
   BoardListResponse,
   BoardResponse,
   SearchResponse,
+  BulletinResponse,
+  CreateBulletinRequest,
 } from '../types/post';
 
 export class ApiService {
@@ -212,6 +214,66 @@ export class ApiService {
     }
 
     return this.fetch<SearchResponse>(`/search?${params}`);
+  }
+
+  // ============================================
+  // BULLETIN METHODS
+  // ============================================
+
+  /**
+   * Get all bulletins (pinned and recent)
+   */
+  async getBulletins(options?: {
+    limit?: number;
+    includeUnpinned?: boolean;
+  }): Promise<Post[]> {
+    const params = new URLSearchParams({
+      limit: String(options?.limit || 10),
+      includeUnpinned: String(options?.includeUnpinned || false)
+    });
+
+    const response = await this.fetch<BulletinResponse>(`/bulletins?${params}`);
+    return response.data;
+  }
+
+  /**
+   * Get latest bulletin (for login screen)
+   */
+  async getLatestBulletin(): Promise<Post | null> {
+    try {
+      const bulletins = await this.getBulletins({ limit: 1, includeUnpinned: true });
+      return bulletins.length > 0 ? bulletins[0] : null;
+    } catch (error) {
+      console.error('Failed to fetch latest bulletin:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create a new bulletin (SYSOP-13 only)
+   */
+  async createBulletin(request: CreateBulletinRequest): Promise<Post> {
+    const response = await this.fetch<PostResponse>('/bulletins', {
+      method: 'POST',
+      body: JSON.stringify(request)
+    });
+    return response.data;
+  }
+
+  /**
+   * Get bulletins by type
+   */
+  async getBulletinsByType(
+    type: 'daily' | 'announcement' | 'lore' | 'system',
+    limit: number = 10
+  ): Promise<Post[]> {
+    const params = new URLSearchParams({
+      type,
+      limit: String(limit)
+    });
+
+    const response = await this.fetch<BulletinResponse>(`/bulletins/type?${params}`);
+    return response.data;
   }
 }
 

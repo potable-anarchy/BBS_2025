@@ -45,6 +45,11 @@ ${fmt.ANSI.FG_BRIGHT_YELLOW}AVAILABLE COMMANDS:${fmt.ANSI.RESET}
     Create a new post on the current board
     Example: POST "Hello World" "This is my first post"
 
+  ${fmt.ANSI.FG_BRIGHT_GREEN}NEWS${fmt.ANSI.RESET} [latest|all|daily|lore|announcement|system] [count]
+    Display system bulletins from SYSOP-13
+    Aliases: BULLETIN, BULLETINS
+    Examples: NEWS, NEWS all, NEWS daily 5
+
   ${fmt.ANSI.FG_BRIGHT_GREEN}CLEAR${fmt.ANSI.RESET}
     Clear the terminal screen
 
@@ -173,6 +178,36 @@ ${fmt.ANSI.FG_BRIGHT_YELLOW}DESCRIPTION:${fmt.ANSI.RESET}
 
 ${fmt.ANSI.FG_BRIGHT_YELLOW}ALIASES:${fmt.ANSI.RESET}
   QUIT - Same as EXIT
+`,
+
+    NEWS: `
+${fmt.header('NEWS COMMAND')}
+
+${fmt.ANSI.FG_BRIGHT_YELLOW}USAGE:${fmt.ANSI.RESET}
+  NEWS [latest|all|daily|lore|announcement|system] [count]
+
+${fmt.ANSI.FG_BRIGHT_YELLOW}DESCRIPTION:${fmt.ANSI.RESET}
+  Display system bulletins posted by SYSOP-13. View daily updates,
+  lore entries, announcements, and system messages.
+
+${fmt.ANSI.FG_BRIGHT_YELLOW}PARAMETERS:${fmt.ANSI.RESET}
+  latest       - Show only the latest bulletin (default)
+  all          - Show all recent bulletins
+  daily        - Show daily update bulletins
+  lore         - Show lore and story bulletins
+  announcement - Show announcement bulletins
+  system       - Show system status bulletins
+  count        - Number of bulletins to display (default: 10)
+
+${fmt.ANSI.FG_BRIGHT_YELLOW}EXAMPLES:${fmt.ANSI.RESET}
+  NEWS              - View the latest bulletin
+  NEWS all          - View all recent bulletins
+  NEWS daily 5      - View the last 5 daily bulletins
+  NEWS lore         - View all lore bulletins
+  BULLETIN          - Alias for NEWS
+
+${fmt.ANSI.FG_BRIGHT_YELLOW}ALIASES:${fmt.ANSI.RESET}
+  BULLETIN, BULLETINS - Same as NEWS
 `,
   };
 
