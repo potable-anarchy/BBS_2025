@@ -8,6 +8,10 @@ require('dotenv').config();
 const dbManager = require('./database/db');
 const { ChatHandler } = require('./src/chat/chatHandler');
 
+// Import session management and logging
+const sessionManager = require('./services/sessionManager');
+const logger = require('./utils/logger');
+
 // Environment variable validation
 const requiredEnvVars = ['KIRO_API_KEY'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -89,45 +93,139 @@ app.post('/api/chat/boards/:boardId/broadcast', (req, res) => {
   res.json({ success: true, boardId, event });
 });
 
-// Socket.IO connection handling
+// Session statistics endpoint (for legacy/general session management)
+app.get('/api/sessions', (req, res) => {
+  const stats = sessionManager.getStats();
+  res.json(stats);
+});
+
+// Active sessions endpoint (for legacy/general session management)
+app.get('/api/sessions/active', (req, res) => {
+  const sessions = sessionManager.getActiveSessions();
+  res.json(sessions);
+});
+
+// Socket.IO connection handling for general purpose (non-chat)
 io.on('connection', (socket) => {
-  console.log(`Client connected: ${socket.id}`);
+  // Extract username from handshake auth or use 'Anonymous'
+  const username = socket.handshake.auth?.username || 'Anonymous';
+
+  // Create session for new connection
+  const session = sessionManager.createSession(socket.id, username);
+
+  logger.info('Client connected', {
+    socketId: socket.id,
+    sessionId: session.sessionId,
+    username: session.username,
+  });
+
+  // Send session info to client
+  socket.emit('session-created', {
+    sessionId: session.sessionId,
+    username: session.username,
+  });
+
+  // Handle username update
+  socket.on('update-username', (newUsername) => {
+    const success = sessionManager.updateUsername(socket.id, newUsername);
+    if (success) {
+      socket.emit('username-updated', { username: newUsername });
+    }
+  });
 
   // Handle custom events
   socket.on('message', (data) => {
-    console.log('Message received:', data);
+    const session = sessionManager.getSessionBySocketId(socket.id);
+    logger.debug('Message received', {
+      username: session?.username,
+      data,
+    });
+
+    // Log activity
+    sessionManager.logActivity(socket.id, 'message', {
+      messageLength: data?.message?.length || 0
+    });
+
     // Broadcast to all clients
-    io.emit('message', { ...data, timestamp: new Date().toISOString() });
+    io.emit('message', {
+      ...data,
+      username: session?.username || 'Anonymous',
+      timestamp: new Date().toISOString()
+    });
   });
 
   // Handle room joining
   socket.on('join-room', (room) => {
+    const session = sessionManager.getSessionBySocketId(socket.id);
     socket.join(room);
-    console.log(`Socket ${socket.id} joined room: ${room}`);
-    socket.to(room).emit('user-joined', { socketId: socket.id });
+
+    // Track room in session
+    sessionManager.joinRoom(socket.id, room);
+
+    logger.info('User joined room', {
+      socketId: socket.id,
+      username: session?.username,
+      room,
+    });
+
+    socket.to(room).emit('user-joined', {
+      socketId: socket.id,
+      username: session?.username || 'Anonymous',
+    });
   });
 
   // Handle room leaving
   socket.on('leave-room', (room) => {
+    const session = sessionManager.getSessionBySocketId(socket.id);
     socket.leave(room);
-    console.log(`Socket ${socket.id} left room: ${room}`);
-    socket.to(room).emit('user-left', { socketId: socket.id });
+
+    // Remove room from session
+    sessionManager.leaveRoom(socket.id, room);
+
+    logger.info('User left room', {
+      socketId: socket.id,
+      username: session?.username,
+      room,
+    });
+
+    socket.to(room).emit('user-left', {
+      socketId: socket.id,
+      username: session?.username || 'Anonymous',
+    });
   });
 
   // Handle disconnect
   socket.on('disconnect', () => {
-    console.log(`Client disconnected: ${socket.id}`);
+    const session = sessionManager.getSessionBySocketId(socket.id);
+
+    logger.info('Client disconnected', {
+      socketId: socket.id,
+      username: session?.username,
+      sessionId: session?.sessionId,
+    });
+
+    // Clean up session
+    sessionManager.destroySession(socket.id);
   });
 
   // Error handling
   socket.on('error', (error) => {
-    console.error('Socket error:', error);
+    const session = sessionManager.getSessionBySocketId(socket.id);
+
+    logger.error('Socket error', {
+      socketId: socket.id,
+      username: session?.username,
+      error: error.message,
+    });
   });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error('Express error', {
+    error: err.message,
+    stack: err.stack,
+  });
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
@@ -148,15 +246,21 @@ try {
 }
 
 server.listen(PORT, () => {
+  logger.info('Server started', {
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+  });
   console.log(`Server running on port ${PORT}`);
   console.log(`WebSocket server is ready for connections`);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, closing server...');
+  logger.info('SIGTERM received, initiating graceful shutdown');
+
   server.close(() => {
     dbManager.close();
+    logger.info('Server closed successfully');
     console.log('Server closed');
     process.exit(0);
   });

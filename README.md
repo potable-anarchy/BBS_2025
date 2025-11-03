@@ -33,7 +33,8 @@ Real-time chat system built with Socket.IO, featuring board-specific rooms, user
 - **Multi-Device Support**: Users can connect from multiple devices
 - **RESTful API**: HTTP endpoints for stats and management
 - **Message Validation**: XSS prevention and content sanitization
-- **Session Management**: Comprehensive user session tracking
+- **Session Management**: Comprehensive user session tracking with ephemeral IDs
+- **Activity Logging**: Structured JSON logs for all user actions
 - **SQLite Database**: Data persistence for boards and posts
 - **Graceful Shutdown**: Clean connection cleanup on shutdown
 
@@ -53,6 +54,7 @@ Real-time chat system built with Socket.IO, featuring board-specific rooms, user
 - **Socket.IO 4.8** - Real-time communication
 - **SQLite** - Database
 - **dotenv** - Environment configuration
+- **helmet** - Security middleware
 
 ## Getting Started
 
@@ -87,6 +89,7 @@ cp .env.example .env
 | `NODE_ENV` | No | Node environment | `development` |
 | `KIRO_API_KEY` | **Yes** | API key for KIRO service | - |
 | `DATABASE_PATH` | No | SQLite database path | `./data/kanban.db` |
+| `LOG_LEVEL` | No | Logging level (DEBUG, INFO, WARN, ERROR) | `INFO` |
 
 **Note:** The server will not start if required environment variables are missing.
 
@@ -103,7 +106,7 @@ Opens at `http://localhost:3000`
 #### Backend Server (Development)
 
 ```bash
-npm run dev
+npm run dev:server
 ```
 
 Runs on port `3001` (configurable via `.env`)
@@ -130,20 +133,30 @@ This creates an optimized production build in the `dist/` directory.
 │   ├── components/
 │   │   ├── Terminal.tsx       # Custom terminal component
 │   │   └── XTermTerminal.tsx  # XTerm-based terminal
+│   ├── chat/                  # Chat infrastructure
+│   │   ├── chatHandler.js     # WebSocket event handling
+│   │   ├── sessionManager.js  # User session tracking (chat-specific)
+│   │   └── middleware.js      # Authentication & validation
 │   ├── styles/
 │   │   └── GlobalStyles.ts    # Global styles
 │   ├── App.tsx                # Main application component
 │   └── main.tsx               # Application entry point
 ├── server.js                  # Backend server
-├── src/chat/                  # Chat infrastructure
-│   ├── chatHandler.js         # WebSocket event handling
-│   ├── sessionManager.js      # User session tracking
-│   └── middleware.js          # Authentication & validation
+├── services/
+│   └── sessionManager.js      # General session management service
+├── utils/
+│   └── logger.js              # Structured logging utility
+├── database/
+│   └── db.js                  # Database manager
+├── routes/
+│   └── boards.js              # Board API routes
+├── data/                      # SQLite database files
 ├── examples/
 │   └── chat-client.html       # Test client for chat
-├── data/                      # SQLite database files
+├── test-client.js             # Test client for chat functionality
 ├── package.json               # Dependencies and scripts
 ├── vite.config.ts            # Vite configuration
+├── CLIENT_INTEGRATION.md      # Frontend integration guide
 └── README.md                  # This file
 ```
 
@@ -194,11 +207,18 @@ socket.on('chat:message', (message) => {
 
 ### REST API Endpoints
 
+#### General Endpoints
 - `GET /health` - Health check endpoint
 - `GET /api` - Basic API status
+
+#### Chat Endpoints
 - `GET /api/chat/stats` - Real-time chat statistics
 - `GET /api/chat/boards/:boardId/users` - Get board users
 - `POST /api/chat/boards/:boardId/broadcast` - Admin broadcast
+
+#### Session Management Endpoints
+- `GET /api/sessions` - Get general session statistics
+- `GET /api/sessions/active` - Get all active sessions
 
 ## Testing the Chat
 
@@ -211,6 +231,8 @@ Open `examples/chat-client.html` in multiple browser windows to test real-time c
 ```bash
 node test-client.js
 ```
+
+This tests the chat functionality with multiple clients, typing indicators, and message broadcasting.
 
 ## Frontend Components
 
@@ -264,9 +286,27 @@ import XTermTerminal from './components/XTermTerminal';
 />
 ```
 
+## Session Management & Logging
+
+The server includes comprehensive session management and activity logging systems:
+
+### Features
+
+- **Ephemeral Session IDs**: Each connection gets a unique, randomly generated session ID
+- **Username Tracking**: Usernames are tracked via Socket.IO handshake auth
+- **Activity Logging**: All user actions are logged with timestamps
+- **Structured Logs**: JSON-formatted logs for easy parsing and analysis
+- **Session Statistics**: Real-time session data available via REST API
+- **Multiple Session Systems**: Separate session management for chat (board-specific) and general connections
+
+### Client Integration
+
+For detailed information on integrating session management with your frontend, see [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md).
+
 ## Available Scripts
 
 - `npm run dev` - Start frontend development server
+- `npm run dev:server` - Start backend server with auto-reload
 - `npm run build` - Build frontend for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
@@ -282,6 +322,7 @@ import XTermTerminal from './components/XTermTerminal';
 
 - [QUICKSTART.md](QUICKSTART.md) - Quick start guide for chat API
 - [IMPLEMENTATION.md](IMPLEMENTATION.md) - Detailed implementation documentation
+- [CLIENT_INTEGRATION.md](CLIENT_INTEGRATION.md) - Frontend session management integration
 
 ## License
 
