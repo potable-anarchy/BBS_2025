@@ -40,10 +40,29 @@ cp .env.example .env
 Edit the `.env` file with your settings:
 
 ```env
+# Server Configuration
 PORT=3001
+
+# CORS Configuration
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# Node Environment
 NODE_ENV=development
+
+# API Keys (REQUIRED)
+KIRO_API_KEY=your_kiro_api_key_here
 ```
+
+### Environment Variables
+
+| Variable | Required | Description | Default |
+|----------|----------|-------------|---------|
+| `PORT` | No | Server port number | `3001` |
+| `ALLOWED_ORIGINS` | No | Comma-separated list of allowed CORS origins | `http://localhost:3000` |
+| `NODE_ENV` | No | Node environment (development/production) | `development` |
+| `KIRO_API_KEY` | **Yes** | API key for KIRO service integration | - |
+
+**Note:** The server will not start if required environment variables are missing.
 
 ## Running the Server
 

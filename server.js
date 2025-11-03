@@ -4,6 +4,19 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config();
 
+// Environment variable validation
+const requiredEnvVars = ['KIRO_API_KEY'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('ERROR: Missing required environment variables:');
+  missingEnvVars.forEach(varName => {
+    console.error(`  - ${varName}`);
+  });
+  console.error('\nPlease create a .env file based on .env.example and set all required variables.');
+  process.exit(1);
+}
+
 const app = express();
 const server = http.createServer(app);
 
