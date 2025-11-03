@@ -9,3 +9,6 @@ export { default as BoardList } from './BoardList';
 // Export auth components
 export { LoginForm } from './LoginForm';
 export { Header } from './Header';
+
+// Export chat components
+export { default as ChatFeed } from './ChatFeed';

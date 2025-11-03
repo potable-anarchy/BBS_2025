@@ -4,7 +4,7 @@
  */
 
 import type { CommandHandler, CommandRegistry } from './types';
-import { helpCommand, joinCommand, listCommand, postCommand, newsCommand } from './handlers';
+import { helpCommand, joinCommand, listCommand, postCommand, newsCommand, chatHandler } from './handlers';
 
 class CommandRegistryManager {
   private commands: CommandRegistry = {};
@@ -16,6 +16,7 @@ class CommandRegistryManager {
     this.register(listCommand);
     this.register(postCommand);
     this.register(newsCommand);
+    this.register(chatHandler);
   }
 
   /**

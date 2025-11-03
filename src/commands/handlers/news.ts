@@ -3,7 +3,7 @@
  * Displays system bulletins from SYSOP-13
  */
 
-import type { CommandHandler, CommandResult, CommandContext } from '../types';
+import type { CommandHandler, CommandResult } from '../types';
 import * as fmt from '../formatter';
 import { api } from '../../services/api';
 import type { Post } from '../../types/post';

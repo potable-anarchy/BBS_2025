@@ -9,6 +9,7 @@ require('dotenv').config();
 const dbManager = require('./database/db.cjs');
 const { ChatHandler } = require('./src/chat/chatHandler.cjs');
 const CommandHandler = require('./backend/commands/commandHandler');
+const ChatService = require('./services/chatService.cjs');
 
 // Import session management, logging, and Kiro hooks
 const sessionManager = require('./services/sessionManager.cjs');
@@ -198,6 +199,80 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Handle global chat message
+  socket.on('chat:send', async (data) => {
+    const session = sessionManager.getSessionBySocketId(socket.id);
+    const username = session?.username || 'Anonymous';
+
+    try {
+      // Save message to database
+      const savedMessage = await chatService.saveMessage(
+        username,
+        data.message,
+        session?.sessionId
+      );
+
+      // Broadcast to all connected clients
+      io.emit('chat:message', {
+        id: savedMessage.id,
+        user: savedMessage.user,
+        message: savedMessage.message,
+        userColor: savedMessage.user_color,
+        timestamp: savedMessage.timestamp
+      });
+
+      logger.info('Chat message broadcasted', {
+        username,
+        messageId: savedMessage.id
+      });
+
+      // Log activity
+      sessionManager.logActivity(socket.id, 'chat:send', {
+        messageLength: data.message.length
+      });
+    } catch (error) {
+      logger.error('Error handling chat message:', error);
+      socket.emit('chat:error', {
+        error: 'Failed to send message'
+      });
+    }
+  });
+
+  // Handle request for recent chat messages
+  socket.on('chat:history', async (data) => {
+    try {
+      const limit = data?.limit || 50;
+      const messages = await chatService.getRecentMessages(limit);
+
+      socket.emit('chat:history', messages);
+
+      logger.debug('Chat history sent', {
+        socketId: socket.id,
+        messageCount: messages.length
+      });
+    } catch (error) {
+      logger.error('Error fetching chat history:', error);
+      socket.emit('chat:error', {
+        error: 'Failed to fetch chat history'
+      });
+    }
+  });
+
+  // Handle request for user color
+  socket.on('chat:getColor', async (data) => {
+    try {
+      const username = data?.username || session?.username || 'Anonymous';
+      const color = await chatService.getUserColor(username);
+
+      socket.emit('chat:color', { username, color });
+    } catch (error) {
+      logger.error('Error getting user color:', error);
+      socket.emit('chat:error', {
+        error: 'Failed to get user color'
+      });
+    }
+  });
+
   // Handle room joining
   socket.on('join-room', (room) => {
     const session = sessionManager.getSessionBySocketId(socket.id);
@@ -287,29 +362,37 @@ if (process.env.NODE_ENV === 'production') {
 
 const PORT = process.env.PORT || 3001;
 
-// Initialize database before starting server
-try {
-  dbManager.initialize();
-  console.log('Database initialized successfully');
-} catch (error) {
-  console.error('Failed to initialize database:', error);
-  process.exit(1);
-}
+// Initialize database and chat service before starting server
+const chatService = new ChatService(dbManager.db);
 
-// Initialize Kiro hooks
-kiroHooks.initialize().catch(error => {
-  console.error('Failed to initialize Kiro hooks:', error);
-  console.warn('Kiro integration will be disabled');
-});
+(async () => {
+  try {
+    dbManager.initialize();
+    console.log('Database initialized successfully');
 
-server.listen(PORT, () => {
-  logger.info('Server started', {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
+    // Initialize chat service (run migrations)
+    await chatService.initialize();
+    console.log('Chat service initialized successfully');
+
+    // Initialize Kiro hooks
+    await kiroHooks.initialize().catch(error => {
+      console.error('Failed to initialize Kiro hooks:', error);
+      console.warn('Kiro integration will be disabled');
+    });
+  } catch (error) {
+    console.error('Failed to initialize:', error);
+    process.exit(1);
+  }
+
+  server.listen(PORT, () => {
+    logger.info('Server started', {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+    });
+    console.log(`Server running on port ${PORT}`);
+    console.log(`WebSocket server is ready for connections`);
   });
-  console.log(`Server running on port ${PORT}`);
-  console.log(`WebSocket server is ready for connections`);
-});
+})();
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

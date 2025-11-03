@@ -6,7 +6,7 @@ import RetroTerminalDemo from './components/RetroTerminalDemo';
 import ModemDialIn from './components/ModemDialIn';
 import BoardList from './components/BoardList';
 import BulletinBoard from './components/BulletinBoard';
-import { LoginForm, Header } from './components';
+import { LoginForm, Header, ChatFeed } from './components';
 import { GlobalStyles } from './styles/GlobalStyles';
 import CRTScreen from './components/CRTScreen';
 import type { CRTConfig } from './styles/crtEffects';
@@ -47,6 +47,26 @@ const MainContent = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+`;
+
+const ContentLayout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-top: 20px;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 2fr 1fr;
+  }
+`;
+
+const MainPanel = styled.div`
+  min-height: 600px;
+`;
+
+const ChatPanel = styled.div`
+  min-height: 600px;
+  max-height: 800px;
 `;
 
 const TerminalGrid = styled.div`
@@ -143,7 +163,7 @@ function AppContent() {
   });
 
   // Initialize WebSocket connection when authenticated
-  useWebSocket({
+  const socket = useWebSocket({
     session,
     onConnectionChange: setConnectionStatus,
   });
@@ -258,29 +278,31 @@ function AppContent() {
             </CRTControls>
           </ControlsContainer>
 
-          <CRTScreen enabled={crtEnabled} config={crtConfig}>
-            {terminalMode === 'boards' ? (
-              <>
-                <TerminalSection>
-                  <BulletinBoard limit={5} />
-                </TerminalSection>
-                <TerminalSection>
-                  <SectionTitle>Message Boards</SectionTitle>
-                  <BoardList onBoardSelect={(board) => {
-                    console.log('Selected board:', board);
-                    // TODO: Navigate to board view
-                  }} />
-                </TerminalSection>
-              </>
-            ) : terminalMode === 'retro' ? (
-              <RetroTerminalDemo />
-            ) : terminalMode === 'custom' ? (
-              <TerminalGrid>
-                <TerminalSection>
-                  <SectionTitle>Custom Terminal Component</SectionTitle>
-                  <Terminal
-                    prompt="$"
-                    welcomeMessage={`Welcome to Vibe Kanban Terminal!
+          <ContentLayout>
+            <MainPanel>
+              <CRTScreen enabled={crtEnabled} config={crtConfig}>
+                {terminalMode === 'boards' ? (
+                  <>
+                    <TerminalSection>
+                      <BulletinBoard limit={5} />
+                    </TerminalSection>
+                    <TerminalSection>
+                      <SectionTitle>Message Boards</SectionTitle>
+                      <BoardList onBoardSelect={(board) => {
+                        console.log('Selected board:', board);
+                        // TODO: Navigate to board view
+                      }} />
+                    </TerminalSection>
+                  </>
+                ) : terminalMode === 'retro' ? (
+                  <RetroTerminalDemo />
+                ) : terminalMode === 'custom' ? (
+                  <TerminalGrid>
+                    <TerminalSection>
+                      <SectionTitle>Custom Terminal Component</SectionTitle>
+                      <Terminal
+                        prompt="$"
+                        welcomeMessage={`Welcome to Vibe Kanban Terminal!
 Version 1.0.0
 Type "help" for available commands.
 
@@ -289,34 +311,45 @@ Try these custom commands:
   pwd     - Print working directory
   calc    - Calculate expressions (e.g., calc 2 + 2)
 `}
-                    onCommand={handleCustomCommand}
-                  />
-                </TerminalSection>
+                        onCommand={handleCustomCommand}
+                      />
+                    </TerminalSection>
 
-                <TerminalSection>
-                  <SectionTitle>Simple Terminal</SectionTitle>
-                  <Terminal
-                    prompt=">"
-                    welcomeMessage="Simple terminal ready. Type commands below:"
-                  />
-                </TerminalSection>
-              </TerminalGrid>
-            ) : (
-              <TerminalSection>
-                <SectionTitle>XTerm-based Terminal</SectionTitle>
-                <XTermTerminal
-                  welcomeMessage={`Welcome to XTerm Terminal!
+                    <TerminalSection>
+                      <SectionTitle>Simple Terminal</SectionTitle>
+                      <Terminal
+                        prompt=">"
+                        welcomeMessage="Simple terminal ready. Type commands below:"
+                      />
+                    </TerminalSection>
+                  </TerminalGrid>
+                ) : (
+                  <TerminalSection>
+                    <SectionTitle>XTerm-based Terminal</SectionTitle>
+                    <XTermTerminal
+                      welcomeMessage={`Welcome to XTerm Terminal!
 Powered by @xterm/xterm
 Type "help" for available commands.
 
 `}
-                  onCommand={(cmd) => {
-                    console.log('Command received:', cmd);
-                  }}
+                      onCommand={(cmd) => {
+                        console.log('Command received:', cmd);
+                      }}
+                    />
+                  </TerminalSection>
+                )}
+              </CRTScreen>
+            </MainPanel>
+
+            <ChatPanel>
+              <CRTScreen enabled={crtEnabled} config={crtConfig}>
+                <ChatFeed
+                  socket={socket}
+                  currentUsername={session?.handle}
                 />
-              </TerminalSection>
-            )}
-          </CRTScreen>
+              </CRTScreen>
+            </ChatPanel>
+          </ContentLayout>
         </AppContainer>
       </MainContent>
     </>

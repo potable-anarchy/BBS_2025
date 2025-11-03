@@ -7,12 +7,15 @@ import { api } from './api';
 import type { CreateBulletinRequest } from '../types/post';
 
 export class BulletinService {
-  private static readonly SYSOP_USER = 'SYSOP-13';
+  // @ts-expect-error Reserved for future use
+  private static readonly _SYSOP_USER = 'SYSOP-13';
 
   /**
    * Generate a daily bulletin prompt for SYSOP-13
+   * Reserved for future Kiro API integration
    */
-  private static generateDailyBulletinPrompt(): string {
+  // @ts-expect-error Reserved for future use
+  private static _generateDailyBulletinPrompt(): string {
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -43,8 +46,10 @@ Do NOT use greeting phrases or sign-offs. Just deliver the bulletin message.`;
 
   /**
    * Generate a lore bulletin prompt for SYSOP-13
+   * Reserved for future Kiro API integration
    */
-  private static generateLoreBulletinPrompt(): string {
+  // @ts-expect-error Reserved for future use
+  private static _generateLoreBulletinPrompt(): string {
     return `Generate a lore-focused bulletin for The Dead Net BBS as SYSOP-13.
 
 Your bulletin should:
@@ -60,8 +65,10 @@ Do NOT use greeting phrases or sign-offs. Just deliver the lore fragment.`;
 
   /**
    * Generate an announcement bulletin prompt for SYSOP-13
+   * Reserved for future Kiro API integration
    */
-  private static generateAnnouncementPrompt(topic: string): string {
+  // @ts-expect-error Reserved for future use
+  private static _generateAnnouncementPrompt(topic: string): string {
     return `Generate a system announcement for The Dead Net BBS as SYSOP-13.
 
 Topic: ${topic}
