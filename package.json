@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "start": "node server.cjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:kiro": "node test-kiro-api.js"
   },
   "keywords": [
     "kanban",

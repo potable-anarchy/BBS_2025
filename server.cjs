@@ -72,6 +72,10 @@ app.get('/api', (req, res) => {
 const boardRoutes = require('./routes/boards.cjs');
 app.use('/api', boardRoutes);
 
+// Import and use Kiro API routes
+const kiroRoutes = require('./routes/kiro.cjs');
+app.use('/api', kiroRoutes);
+
 // Chat stats endpoint
 app.get('/api/chat/stats', (req, res) => {
   const stats = chatHandler.sessionManager.getStats();
