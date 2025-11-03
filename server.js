@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const helmet = require('helmet');
 require('dotenv').config();
 
 const dbManager = require('./database/db');
@@ -41,9 +42,12 @@ const io = new Server(server, {
 // Initialize chat handler
 const chatHandler = new ChatHandler(io);
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Security middleware
+app.use(helmet());
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Basic health check endpoint
 app.get('/health', (req, res) => {
@@ -54,6 +58,10 @@ app.get('/health', (req, res) => {
 app.get('/api', (req, res) => {
   res.json({ message: 'API is running' });
 });
+
+// Import and use board routes
+const boardRoutes = require('./routes/boards');
+app.use('/api', boardRoutes);
 
 // Chat stats endpoint
 app.get('/api/chat/stats', (req, res) => {
@@ -81,7 +89,7 @@ app.post('/api/chat/boards/:boardId/broadcast', (req, res) => {
   res.json({ success: true, boardId, event });
 });
 
-// Default Socket.IO connection handling (for backward compatibility)
+// Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
