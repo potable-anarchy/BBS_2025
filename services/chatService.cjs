@@ -47,7 +47,7 @@ class ChatService {
 
         for (const statement of statements) {
           if (statement.trim()) {
-            await this.db.run(statement);
+            this.db.exec(statement);
           }
         }
       }
@@ -60,13 +60,13 @@ class ChatService {
 
         for (const statement of statements) {
           if (statement.trim()) {
-            await this.db.run(statement);
+            this.db.exec(statement);
           }
         }
       }
 
       // Preload user colors into cache
-      await this._preloadColorCache();
+      this._preloadColorCache();
 
       logger.info('Chat service initialized successfully');
     } catch (error) {
@@ -79,9 +79,9 @@ class ChatService {
    * Preload existing user colors into memory cache
    * @private
    */
-  async _preloadColorCache() {
+  _preloadColorCache() {
     try {
-      const rows = await this.db.all('SELECT user, color FROM user_colors');
+      const rows = this.db.prepare('SELECT user, color FROM user_colors').all();
       rows.forEach(row => {
         this.colorCache.set(row.user, row.color);
       });
@@ -100,30 +100,29 @@ class ChatService {
     try {
       // Check cache first (O(1) lookup)
       if (this.colorCache.has(username)) {
-        // Update last seen asynchronously (don't wait)
-        this.db.run(
-          'UPDATE user_colors SET last_seen = CURRENT_TIMESTAMP WHERE user = ?',
-          [username]
-        ).catch(err => logger.error('Error updating last_seen:', err));
+        // Update last seen in background
+        try {
+          this.db.prepare('UPDATE user_colors SET last_seen = CURRENT_TIMESTAMP WHERE user = ?').run(username);
+        } catch (err) {
+          logger.error('Error updating last_seen:', err);
+        }
 
         return this.colorCache.get(username);
       }
 
       // Check database if not in cache
-      const existing = await this.db.get(
-        'SELECT color FROM user_colors WHERE user = ?',
-        [username]
-      );
+      const existing = this.db.prepare('SELECT color FROM user_colors WHERE user = ?').get(username);
 
       if (existing) {
         // Add to cache
         this._addToCache(username, existing.color);
 
-        // Update last seen asynchronously
-        this.db.run(
-          'UPDATE user_colors SET last_seen = CURRENT_TIMESTAMP WHERE user = ?',
-          [username]
-        ).catch(err => logger.error('Error updating last_seen:', err));
+        // Update last seen
+        try {
+          this.db.prepare('UPDATE user_colors SET last_seen = CURRENT_TIMESTAMP WHERE user = ?').run(username);
+        } catch (err) {
+          logger.error('Error updating last_seen:', err);
+        }
 
         return existing.color;
       }
@@ -133,10 +132,7 @@ class ChatService {
       const color = this.colors[colorIndex];
 
       // Save the color assignment
-      await this.db.run(
-        'INSERT INTO user_colors (user, color) VALUES (?, ?)',
-        [username, color]
-      );
+      this.db.prepare('INSERT INTO user_colors (user, color) VALUES (?, ?)').run(username, color);
 
       // Add to cache
       this._addToCache(username, color);
@@ -191,16 +187,14 @@ class ChatService {
     try {
       const userColor = await this.getUserColor(user);
 
-      const result = await this.db.run(
+      const result = this.db.prepare(
         `INSERT INTO chat_messages (user, message, user_color, session_id)
-         VALUES (?, ?, ?, ?)`,
-        [user, message, userColor, sessionId]
-      );
+         VALUES (?, ?, ?, ?)`
+      ).run(user, message, userColor, sessionId);
 
-      const savedMessage = await this.db.get(
-        'SELECT * FROM chat_messages WHERE id = ?',
-        [result.lastID]
-      );
+      const savedMessage = this.db.prepare(
+        'SELECT * FROM chat_messages WHERE id = ?'
+      ).get(result.lastInsertRowid);
 
       logger.info(`Chat message saved: ${user}: ${message.substring(0, 50)}`);
       return savedMessage;
@@ -217,13 +211,12 @@ class ChatService {
    */
   async getRecentMessages(limit = 50) {
     try {
-      const messages = await this.db.all(
+      const messages = this.db.prepare(
         `SELECT id, user, message, user_color, timestamp
          FROM chat_messages
          ORDER BY timestamp DESC
-         LIMIT ?`,
-        [limit]
-      );
+         LIMIT ?`
+      ).all(limit);
 
       // Reverse to get chronological order
       return messages.reverse();
@@ -240,13 +233,12 @@ class ChatService {
    */
   async getMessagesSince(since) {
     try {
-      const messages = await this.db.all(
+      const messages = this.db.prepare(
         `SELECT id, user, message, user_color, timestamp
          FROM chat_messages
          WHERE timestamp > ?
-         ORDER BY timestamp ASC`,
-        [since]
-      );
+         ORDER BY timestamp ASC`
+      ).all(since);
 
       return messages;
     } catch (error) {
@@ -261,7 +253,7 @@ class ChatService {
    */
   async getAllUserColors() {
     try {
-      const rows = await this.db.all('SELECT user, color FROM user_colors');
+      const rows = this.db.prepare('SELECT user, color FROM user_colors').all();
       const colorMap = {};
       rows.forEach(row => {
         colorMap[row.user] = row.color;
@@ -280,11 +272,10 @@ class ChatService {
    */
   async deleteOldMessages(daysOld = 30) {
     try {
-      const result = await this.db.run(
+      const result = this.db.prepare(
         `DELETE FROM chat_messages
-         WHERE timestamp < datetime('now', '-' || ? || ' days')`,
-        [daysOld]
-      );
+         WHERE timestamp < datetime('now', '-' || ? || ' days')`
+      ).run(daysOld);
 
       logger.info(`Deleted ${result.changes} old chat messages`);
       return result.changes;

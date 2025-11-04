@@ -421,7 +421,6 @@ let chatService;
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, initiating graceful shutdown');
 
-  kiroHooks.cleanup();
   server.close(() => {
     dbManager.close();
     logger.info('Server closed successfully');
@@ -432,7 +431,6 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log('SIGINT received, closing server...');
-  kiroHooks.cleanup();
   server.close(() => {
     dbManager.close();
     console.log('Server closed');
