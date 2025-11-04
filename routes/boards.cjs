@@ -3,7 +3,7 @@ const router = express.Router();
 const { sanitizeMiddleware } = require('../middleware/sanitize.cjs');
 const { validateCreatePost, validateGetPosts, handleValidationErrors } = require('../middleware/validate.cjs');
 const db = require('../database/db.cjs');
-const kiroHooks = require('../services/kiroHooks.cjs');
+const sysop = require('../services/sysopInstance.cjs');
 
 /**
  * GET /boards
@@ -336,22 +336,16 @@ router.post('/posts', sanitizeMiddleware, validateCreatePost, handleValidationEr
       parentPostId
     );
 
-    // Trigger Kiro on_new_post hook (only for top-level posts, not replies)
+    // Trigger SysOp AI on new post (only for top-level posts, not replies)
     if (!parentPostId) {
-      kiroHooks.onNewPost({
-        id: newPost.id,
-        user: newPost.user,
-        message: newPost.message,
-        board_id: newPost.board_id,
-        board_name: boardData.name
-      }).then(analysis => {
-        // If Kiro decides to respond, create a post from SYSOP-13
-        if (analysis && analysis.success && analysis.shouldRespond && analysis.response) {
+      sysop.onNewPost(newPost.user, boardData.name, newPost.message).then(response => {
+        // If SysOp decides to respond, create a post from SYSOP-13
+        if (response) {
           try {
             db.createPost(
               boardData.id,
               'SYSOP-13',
-              analysis.response,
+              response,
               newPost.id // Reply to the original post
             );
             console.log(`SYSOP-13 responded to post ${newPost.id}`);
@@ -360,7 +354,7 @@ router.post('/posts', sanitizeMiddleware, validateCreatePost, handleValidationEr
           }
         }
       }).catch(error => {
-        console.error('Error in Kiro new post hook:', error);
+        console.error('Error in SysOp new post hook:', error);
       });
     }
 

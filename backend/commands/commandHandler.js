@@ -3,7 +3,7 @@
  * Processes commands received via WebSocket
  */
 
-const logger = require('../utils/logger');
+const logger = require('../../utils/logger.cjs');
 
 class CommandHandler {
   constructor(io, sessionManager) {

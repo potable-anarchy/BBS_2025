@@ -15,9 +15,10 @@ const ChatService = require('./services/chatService.cjs');
 const sessionManager = require('./services/sessionManager.cjs');
 const logger = require('./utils/logger.cjs');
 const kiroHooks = require('./services/kiroHooks.cjs');
+const sysop = require('./services/sysopInstance.cjs');
 
-// Environment variable validation
-const requiredEnvVars = ['KIRO_API_KEY'];
+// Environment variable validation - removed KIRO_API_KEY requirement
+const requiredEnvVars = [];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
@@ -152,23 +153,57 @@ io.on('connection', (socket) => {
     username: session.username,
   });
 
-  // Trigger Kiro on_user_login hook
-  kiroHooks.onUserLogin({
-    username: session.username,
-    socketId: socket.id,
-    sessionId: session.sessionId
-  }).then(greeting => {
-    if (greeting && greeting.success && greeting.greeting) {
+  // Trigger SysOp AI on user login
+  sysop.onUserLogin(session.username, session.sessionId).then(greeting => {
+    if (greeting) {
       // Send SYSOP-13 greeting to the user
-      socket.emit('sysop-greeting', {
-        message: greeting.greeting,
+      socket.emit('sysop-message', {
+        message: greeting,
         from: 'SYSOP-13',
+        timestamp: new Date().toISOString(),
+        type: 'greeting'
+      });
+      
+      // Also broadcast to all users that someone connected
+      io.emit('system-message', {
+        message: `${session.username} has connected to The Dead Net`,
+        type: 'user-join',
         timestamp: new Date().toISOString()
       });
     }
   }).catch(error => {
-    logger.error('Error in Kiro login hook', { error: error.message });
+    logger.error('Error in SysOp login hook', { error: error.message });
   });
+  
+  // Set up idle detection (5 minutes)
+  let idleTimer;
+  const IDLE_TIME = 5 * 60 * 1000; // 5 minutes
+  
+  const resetIdleTimer = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      // Send haunted message to idle user
+      sysop.onIdle(session.username).then(message => {
+        if (message) {
+          socket.emit('sysop-message', {
+            message: message,
+            from: 'SYSTEM',
+            timestamp: new Date().toISOString(),
+            type: 'idle-haunting'
+          });
+        }
+      });
+    }, IDLE_TIME);
+  };
+  
+  // Start idle timer
+  resetIdleTimer();
+  
+  // Reset idle timer on any user activity
+  socket.on('user-activity', resetIdleTimer);
+  socket.on('message', resetIdleTimer);
+  socket.on('chat:send', resetIdleTimer);
+  socket.on('update-username', resetIdleTimer);
 
   // Handle username update
   socket.on('update-username', (newUsername) => {
@@ -316,6 +351,9 @@ io.on('connection', (socket) => {
   // Handle disconnect
   socket.on('disconnect', () => {
     const session = sessionManager.getSessionBySocketId(socket.id);
+    
+    // Clear idle timer
+    clearTimeout(idleTimer);
 
     logger.info('Client disconnected', {
       socketId: socket.id,

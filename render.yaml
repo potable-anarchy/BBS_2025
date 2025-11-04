@@ -14,12 +14,8 @@ services:
         value: 10000
       - key: ALLOWED_ORIGINS
         sync: false
-      - key: KIRO_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
-      - key: KIRO_API_URL
-        value: https://api.kiro.ai/v1
-      - key: KIRO_TIMEOUT
-        value: 30000
       - key: DATABASE_PATH
         value: /data/bbs.db
       - key: LOG_LEVEL
