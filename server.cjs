@@ -392,9 +392,24 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
+// Serve index.html for all non-API routes (SPA fallback)
+// This middleware catches all routes not handled above
 app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
+  // If it's an API route, return 404
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // For all other routes, serve the React app
+  const indexPath = process.env.NODE_ENV === 'production' 
+    ? path.join(__dirname, 'dist', 'index.html')
+    : path.join(__dirname, 'index.html');
+    
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: 'Frontend not built. Run npm run build' });
+  }
 });
 
 const PORT = process.env.PORT || 3001;
