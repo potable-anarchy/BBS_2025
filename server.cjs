@@ -43,8 +43,8 @@ app.use(cors(corsOptions));
 // Socket.IO setup with CORS
 const io = new Server(server, {
   cors: corsOptions,
-  pingTimeout: 60000,
-  pingInterval: 25000
+  pingTimeout: 30000,  // Reduced from 60s to 30s for faster dead connection detection
+  pingInterval: 15000  // Reduced from 25s to 15s for more frequent health checks
 });
 
 // Initialize chat handler

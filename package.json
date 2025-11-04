@@ -12,7 +12,10 @@
     "start": "node server.cjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:kiro": "node test-kiro-api.js",
-    "test:kiro:hooks": "node test-kiro-hooks.js"
+    "test:kiro:hooks": "node test-kiro-hooks.js",
+    "test:perf:websocket": "node tests/performance/websocket-load-test.js",
+    "test:perf:websocket:light": "CONNECTIONS=10 MESSAGES=5 node tests/performance/websocket-load-test.js",
+    "test:perf:websocket:heavy": "CONNECTIONS=100 MESSAGES=20 node tests/performance/websocket-load-test.js"
   },
   "keywords": [
     "kanban",

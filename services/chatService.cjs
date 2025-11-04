@@ -25,6 +25,10 @@ class ChatService {
       '#ff88ff', // Light Magenta
       '#88ffff', // Light Cyan
     ];
+
+    // In-memory cache for user colors (LRU with max 1000 entries)
+    this.colorCache = new Map();
+    this.maxCacheSize = 1000;
   }
 
   /**
@@ -34,8 +38,9 @@ class ChatService {
     try {
       const fs = require('fs');
       const path = require('path');
-      const migrationPath = path.join(__dirname, '../database/migrations/003_add_global_chat.sql');
 
+      // Run chat migration
+      const migrationPath = path.join(__dirname, '../database/migrations/003_add_global_chat.sql');
       if (fs.existsSync(migrationPath)) {
         const migration = fs.readFileSync(migrationPath, 'utf8');
         const statements = migration.split(';').filter(stmt => stmt.trim());
@@ -45,8 +50,25 @@ class ChatService {
             await this.db.run(statement);
           }
         }
-        logger.info('Chat service initialized successfully');
       }
+
+      // Run performance indexes migration
+      const indexMigrationPath = path.join(__dirname, '../database/migrations/004_add_performance_indexes.sql');
+      if (fs.existsSync(indexMigrationPath)) {
+        const migration = fs.readFileSync(indexMigrationPath, 'utf8');
+        const statements = migration.split(';').filter(stmt => stmt.trim());
+
+        for (const statement of statements) {
+          if (statement.trim()) {
+            await this.db.run(statement);
+          }
+        }
+      }
+
+      // Preload user colors into cache
+      await this._preloadColorCache();
+
+      logger.info('Chat service initialized successfully');
     } catch (error) {
       logger.error('Failed to initialize chat service:', error);
       throw error;
@@ -54,24 +76,55 @@ class ChatService {
   }
 
   /**
-   * Get or assign a color for a user
+   * Preload existing user colors into memory cache
+   * @private
+   */
+  async _preloadColorCache() {
+    try {
+      const rows = await this.db.all('SELECT user, color FROM user_colors');
+      rows.forEach(row => {
+        this.colorCache.set(row.user, row.color);
+      });
+      logger.info(`Preloaded ${rows.length} user colors into cache`);
+    } catch (error) {
+      logger.error('Error preloading color cache:', error);
+    }
+  }
+
+  /**
+   * Get or assign a color for a user (with in-memory caching)
    * @param {string} username - The username
    * @returns {Promise<string>} The assigned color
    */
   async getUserColor(username) {
     try {
-      // Check if user already has a color
+      // Check cache first (O(1) lookup)
+      if (this.colorCache.has(username)) {
+        // Update last seen asynchronously (don't wait)
+        this.db.run(
+          'UPDATE user_colors SET last_seen = CURRENT_TIMESTAMP WHERE user = ?',
+          [username]
+        ).catch(err => logger.error('Error updating last_seen:', err));
+
+        return this.colorCache.get(username);
+      }
+
+      // Check database if not in cache
       const existing = await this.db.get(
         'SELECT color FROM user_colors WHERE user = ?',
         [username]
       );
 
       if (existing) {
-        // Update last seen
-        await this.db.run(
+        // Add to cache
+        this._addToCache(username, existing.color);
+
+        // Update last seen asynchronously
+        this.db.run(
           'UPDATE user_colors SET last_seen = CURRENT_TIMESTAMP WHERE user = ?',
           [username]
-        );
+        ).catch(err => logger.error('Error updating last_seen:', err));
+
         return existing.color;
       }
 
@@ -85,6 +138,9 @@ class ChatService {
         [username, color]
       );
 
+      // Add to cache
+      this._addToCache(username, color);
+
       logger.info(`Assigned color ${color} to user ${username}`);
       return color;
     } catch (error) {
@@ -92,6 +148,21 @@ class ChatService {
       // Fallback to default green
       return '#00ff00';
     }
+  }
+
+  /**
+   * Add entry to color cache with LRU eviction
+   * @private
+   */
+  _addToCache(username, color) {
+    // If cache is full, remove oldest entry
+    if (this.colorCache.size >= this.maxCacheSize) {
+      const firstKey = this.colorCache.keys().next().value;
+      this.colorCache.delete(firstKey);
+    }
+
+    // Add new entry (or update existing)
+    this.colorCache.set(username, color);
   }
 
   /**
