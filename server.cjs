@@ -391,22 +391,17 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3001;
 
 // Initialize database and chat service before starting server
-const chatService = new ChatService(dbManager.db);
+let chatService;
 
 (async () => {
   try {
     dbManager.initialize();
     console.log('Database initialized successfully');
 
-    // Initialize chat service (run migrations)
+    // Create chat service after database is initialized
+    chatService = new ChatService(dbManager.db);
     await chatService.initialize();
     console.log('Chat service initialized successfully');
-
-    // Initialize Kiro hooks
-    await kiroHooks.initialize().catch(error => {
-      console.error('Failed to initialize Kiro hooks:', error);
-      console.warn('Kiro integration will be disabled');
-    });
   } catch (error) {
     console.error('Failed to initialize:', error);
     process.exit(1);
