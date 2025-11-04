@@ -71,9 +71,18 @@ app.use(helmet({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files from Vite build in production
+// Serve static files from Vite build in production, or from root in development
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'dist')));
+  // Check if dist exists, otherwise serve from root
+  const distPath = path.join(__dirname, 'dist');
+  const rootPath = __dirname;
+  
+  if (require('fs').existsSync(distPath)) {
+    app.use(express.static(distPath));
+  } else {
+    console.log('dist/ not found, serving from root directory');
+    app.use(express.static(rootPath));
+  }
 }
 
 // Basic health check endpoint
@@ -383,7 +392,24 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler for all environments
+// Serve index.html for all non-API routes (SPA fallback)
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  const indexPath = process.env.NODE_ENV === 'production' 
+    ? path.join(__dirname, 'dist', 'index.html')
+    : path.join(__dirname, 'index.html');
+    
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: 'Application not found' });
+  }
+});
+
+// 404 handler for remaining requests
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
