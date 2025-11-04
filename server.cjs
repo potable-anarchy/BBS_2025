@@ -392,24 +392,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Serve index.html for all non-API routes (SPA fallback)
-app.get('/:path(*)', (req, res) => {
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  
-  const indexPath = process.env.NODE_ENV === 'production' 
-    ? path.join(__dirname, 'dist', 'index.html')
-    : path.join(__dirname, 'index.html');
-    
-  if (require('fs').existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).json({ error: 'Application not found' });
-  }
-});
-
-// 404 handler for remaining requests
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
