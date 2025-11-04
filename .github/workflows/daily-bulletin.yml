@@ -1,0 +1,31 @@
+name: Daily SYSOP-13 Bulletin
+
+on:
+  schedule:
+    # Run at 3 AM UTC every day (spooky hour)
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  post-bulletin:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: npm install @google/generative-ai node-fetch
+    
+    - name: Post Daily Bulletin
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        BBS_API_URL: ${{ secrets.BBS_API_URL }}
+        BBS_API_SECRET: ${{ secrets.BBS_API_SECRET }}
+      run: |
+        node .github/scripts/post-bulletin.js

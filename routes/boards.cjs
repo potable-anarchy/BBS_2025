@@ -285,12 +285,31 @@ router.get('/posts/:id/thread/hierarchy', sanitizeMiddleware, (req, res) => {
   }
 });
 
+// API authentication middleware for automated posts
+const apiAuthMiddleware = (req, res, next) => {
+  const apiSecret = req.headers['x-api-secret'];
+  
+  // If API secret is provided, validate it
+  if (apiSecret) {
+    if (apiSecret === process.env.BBS_API_SECRET) {
+      req.isApiAuthenticated = true;
+    } else {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid API secret'
+      });
+    }
+  }
+  
+  next();
+};
+
 /**
  * POST /posts
  * Create a new post or reply
  * Body: { board, user, message, parent_post_id }
  */
-router.post('/posts', sanitizeMiddleware, validateCreatePost, handleValidationErrors, (req, res) => {
+router.post('/posts', apiAuthMiddleware, sanitizeMiddleware, validateCreatePost, handleValidationErrors, (req, res) => {
   try {
     const { board, user, message, parent_post_id } = req.body;
 
@@ -336,8 +355,8 @@ router.post('/posts', sanitizeMiddleware, validateCreatePost, handleValidationEr
       parentPostId
     );
 
-    // Trigger SysOp AI on new post (only for top-level posts, not replies)
-    if (!parentPostId) {
+    // Trigger SysOp AI on new post (only for top-level posts, not replies, and not for API posts from SYSOP-13)
+    if (!parentPostId && !(req.isApiAuthenticated && user === 'SYSOP-13')) {
       sysop.onNewPost(newPost.user, boardData.name, newPost.message).then(response => {
         // If SysOp decides to respond, create a post from SYSOP-13
         if (response) {
