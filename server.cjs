@@ -393,7 +393,7 @@ app.use((err, req, res, next) => {
 });
 
 // Serve index.html for all non-API routes (SPA fallback)
-app.get('*', (req, res) => {
+app.get('/:path(*)', (req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
