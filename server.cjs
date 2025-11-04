@@ -72,44 +72,41 @@ app.use(helmet({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Configure MIME types
-express.static.mime.define({
-  'text/javascript': ['js', 'mjs'],
-  'text/css': ['css'],
-  'text/html': ['html', 'htm'],
-  'application/json': ['json'],
-  'image/svg+xml': ['svg'],
-  'font/woff2': ['woff2'],
-  'font/woff': ['woff'],
-  'font/ttf': ['ttf']
-});
-
 // Serve static files from Vite build in production, or from root in development
 if (process.env.NODE_ENV === 'production') {
   // Check if dist exists, otherwise serve from root
   const distPath = path.join(__dirname, 'dist');
   const rootPath = __dirname;
   
+  // Helper function to set proper MIME types
+  const setCustomHeaders = (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+    } else if (filePath.endsWith('.mjs')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+    } else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+    }
+  };
+  
   if (require('fs').existsSync(distPath)) {
     app.use(express.static(distPath, {
-      setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
-          res.setHeader('Content-Type', 'text/javascript');
-        } else if (filePath.endsWith('.css')) {
-          res.setHeader('Content-Type', 'text/css');
-        }
-      }
+      setHeaders: setCustomHeaders
     }));
   } else {
     console.log('dist/ not found, serving from root directory');
     app.use(express.static(rootPath, {
-      setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
-          res.setHeader('Content-Type', 'text/javascript');
-        } else if (filePath.endsWith('.css')) {
-          res.setHeader('Content-Type', 'text/css');
-        }
-      }
+      setHeaders: setCustomHeaders,
+      // Don't serve .env or other sensitive files
+      dotfiles: 'ignore',
+      index: false // We'll handle index.html in our fallback
+    }));
+    
+    // Serve src files for development mode
+    app.use('/src', express.static(path.join(rootPath, 'src'), {
+      setHeaders: setCustomHeaders
     }));
   }
 }
