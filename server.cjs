@@ -383,17 +383,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Serve index.html for all other routes in production (SPA support)
-if (process.env.NODE_ENV === 'production') {
-  app.get('/*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  });
-} else {
-  // 404 handler for development
-  app.use((req, res) => {
-    res.status(404).json({ error: 'Not found' });
-  });
-}
+// 404 handler for all environments
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
 
 const PORT = process.env.PORT || 3001;
 
