@@ -2,7 +2,7 @@
   "name": "vibe-kanban",
   "version": "1.0.0",
   "private": true,
-  "description": "Full-stack Kanban board with terminal-style UI - React frontend and Node.js backend",
+  "description": "The Dead Net BBS - A retro terminal-style BBS with AI-powered SYSOP (SYSOP-13), real-time chat, and nostalgic 1990s aesthetic. Built for Kiroween Hackathon.",
   "scripts": {
     "dev": "vite",
     "dev:server": "nodemon server.cjs",
@@ -18,13 +18,26 @@
     "test:perf:websocket:heavy": "CONNECTIONS=100 MESSAGES=20 node tests/performance/websocket-load-test.js"
   },
   "keywords": [
-    "kanban",
+    "bbs",
+    "bulletin-board-system",
     "terminal",
+    "retro",
+    "ai-agent",
+    "kiro",
+    "sysop",
+    "websocket",
+    "real-time-chat",
     "react",
     "typescript",
     "vite",
     "socket.io",
-    "express"
+    "express",
+    "xterm",
+    "1990s",
+    "nostalgic",
+    "crt-effects",
+    "kiroween",
+    "hackathon"
   ],
   "author": "",
   "license": "MIT",
