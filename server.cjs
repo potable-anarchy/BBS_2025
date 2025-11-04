@@ -14,7 +14,6 @@ const ChatService = require('./services/chatService.cjs');
 // Import session management, logging, and Kiro hooks
 const sessionManager = require('./services/sessionManager.cjs');
 const logger = require('./utils/logger.cjs');
-const kiroHooks = require('./services/kiroHooks.cjs');
 const sysop = require('./services/sysopInstance.cjs');
 
 // Environment variable validation - removed KIRO_API_KEY requirement
@@ -91,9 +90,7 @@ app.get('/api', (req, res) => {
 const boardRoutes = require('./routes/boards.cjs');
 app.use('/api', boardRoutes);
 
-// Import and use Kiro API routes
-const kiroRoutes = require('./routes/kiro.cjs');
-app.use('/api', kiroRoutes);
+// Kiro API routes removed - using Gemini AI instead
 
 // Chat stats endpoint
 app.get('/api/chat/stats', (req, res) => {
