@@ -59,9 +59,10 @@ app.use(helmet({
   contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "ws:", "wss:"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://fonts.gstatic.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      connectSrc: ["'self'", "ws:", "wss:", "https:"],
       imgSrc: ["'self'", "data:", "https:"],
     },
   } : false,
@@ -71,6 +72,18 @@ app.use(helmet({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Configure MIME types
+express.static.mime.define({
+  'text/javascript': ['js', 'mjs'],
+  'text/css': ['css'],
+  'text/html': ['html', 'htm'],
+  'application/json': ['json'],
+  'image/svg+xml': ['svg'],
+  'font/woff2': ['woff2'],
+  'font/woff': ['woff'],
+  'font/ttf': ['ttf']
+});
+
 // Serve static files from Vite build in production, or from root in development
 if (process.env.NODE_ENV === 'production') {
   // Check if dist exists, otherwise serve from root
@@ -78,10 +91,26 @@ if (process.env.NODE_ENV === 'production') {
   const rootPath = __dirname;
   
   if (require('fs').existsSync(distPath)) {
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
+          res.setHeader('Content-Type', 'text/javascript');
+        } else if (filePath.endsWith('.css')) {
+          res.setHeader('Content-Type', 'text/css');
+        }
+      }
+    }));
   } else {
     console.log('dist/ not found, serving from root directory');
-    app.use(express.static(rootPath));
+    app.use(express.static(rootPath, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js') || filePath.endsWith('.mjs')) {
+          res.setHeader('Content-Type', 'text/javascript');
+        } else if (filePath.endsWith('.css')) {
+          res.setHeader('Content-Type', 'text/css');
+        }
+      }
+    }));
   }
 }
 
