@@ -20,7 +20,7 @@ import type {
 export class ApiService {
   private baseUrl: string;
 
-  constructor(baseUrl: string = "http://localhost:3001/api") {
+  constructor(baseUrl: string = "/api") {
     this.baseUrl = baseUrl;
   }
 
