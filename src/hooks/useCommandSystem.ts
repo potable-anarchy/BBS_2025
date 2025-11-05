@@ -19,6 +19,7 @@ export function useCommandSystem(config: CommandSystemConfig = {}) {
   const [currentBoard, setCurrentBoard] = useState<string | undefined>(config.boardId);
   const [username, setUsername] = useState<string>(config.username || 'Anonymous');
   const [isConnected, setIsConnected] = useState(false);
+  const [gameMode, setGameMode] = useState<boolean>(false);
   const socketRef = useRef<Socket | null>(null);
 
   // Initialize WebSocket connection
@@ -63,11 +64,17 @@ export function useCommandSystem(config: CommandSystemConfig = {}) {
         socketId: socketRef.current?.id,
         username,
         boardId: currentBoard,
+        gameMode,
         timestamp: new Date().toISOString(),
       };
 
       // Execute command locally
       const result = await commandExecutor.execute(input, context);
+
+      // Update game mode state based on result
+      if (result.data?.inGameMode !== undefined) {
+        setGameMode(result.data.inGameMode);
+      }
 
       // If command was successful and has data, emit to server
       if (result.success && socketRef.current?.connected) {
@@ -89,7 +96,7 @@ export function useCommandSystem(config: CommandSystemConfig = {}) {
 
       return result;
     },
-    [username, currentBoard]
+    [username, currentBoard, gameMode]
   );
 
   // Get available commands for current context
@@ -98,10 +105,11 @@ export function useCommandSystem(config: CommandSystemConfig = {}) {
       sessionId: socketRef.current?.id || 'local',
       username,
       boardId: currentBoard,
+      gameMode,
       timestamp: new Date().toISOString(),
     };
     return commandExecutor.getAvailableCommands(context);
-  }, [username, currentBoard]);
+  }, [username, currentBoard, gameMode]);
 
   return {
     executeCommand,
@@ -109,6 +117,7 @@ export function useCommandSystem(config: CommandSystemConfig = {}) {
     currentBoard,
     username,
     isConnected,
+    gameMode,
     setUsername,
   };
 }

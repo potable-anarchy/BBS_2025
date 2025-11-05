@@ -20,7 +20,7 @@ export const CommandTerminal: React.FC<CommandTerminalProps> = ({
   serverUrl,
   welcomeMessage,
 }) => {
-  const { executeCommand, currentBoard, isConnected } = useCommandSystem({
+  const { executeCommand, currentBoard, gameMode, isConnected } = useCommandSystem({
     username,
     boardId,
     serverUrl,
@@ -81,13 +81,16 @@ Type JOIN <board_id> to join a discussion board.
 `;
   }, [username, currentBoard, isConnected, welcomeMessage]);
 
-  // Create prompt based on current board
+  // Create prompt based on current board or game mode
   const getPrompt = useCallback(() => {
+    if (gameMode) {
+      return '[LORD] > ';
+    }
     if (currentBoard) {
       return `[${currentBoard}] > `;
     }
     return '> ';
-  }, [currentBoard]);
+  }, [currentBoard, gameMode]);
 
   return (
     <Terminal

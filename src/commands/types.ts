@@ -8,6 +8,7 @@ export interface CommandContext {
   socketId?: string;
   username: string;
   boardId?: string;
+  gameMode?: boolean;
   timestamp: string;
 }
 

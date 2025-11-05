@@ -13,6 +13,16 @@ export class CommandExecutor {
    * Execute a command from raw input
    */
   async execute(rawInput: string, context: CommandContext): Promise<CommandResult> {
+    // Check if we're in game mode - if so, route ALL input to the game handler
+    if (context.gameMode) {
+      const gameHandler = commandRegistry.get('LORD');
+      if (gameHandler) {
+        // Pass the entire raw input as args to the game
+        const args = rawInput.trim().split(/\s+/);
+        return await gameHandler.execute(args, context);
+      }
+    }
+
     // Sanitize input
     const sanitized = sanitizeInput(rawInput);
 
