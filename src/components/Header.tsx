@@ -115,8 +115,8 @@ const StatusDot = styled.div<{ $status: ConnectionStatus }>`
       }
     }}66;
 
-  ${({ status }) =>
-    status === ConnectionStatus.CONNECTING &&
+  ${({ $status }) =>
+    $status === ConnectionStatus.CONNECTING &&
     `
     animation: pulse 1.5s infinite;
   `}

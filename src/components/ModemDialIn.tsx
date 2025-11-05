@@ -128,7 +128,7 @@ const StatusLine = styled.div<{
         : "rgba(255, 255, 0, 0.1)"};
   text-shadow: 0 0 10px currentColor;
   animation: ${blink} 1s infinite;
-  animation-delay: ${(props) => (props.status === "connected" ? "0s" : "0s")};
+  animation-delay: ${(props) => (props.$status === "connected" ? "0s" : "0s")};
 `;
 
 const Cursor = styled.span`
