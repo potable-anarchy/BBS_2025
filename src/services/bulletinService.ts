@@ -12,7 +12,7 @@ export class BulletinService {
 
   /**
    * Generate a daily bulletin prompt for SYSOP-13
-   * Reserved for future Kiro API integration
+   * Reserved for future AI integration
    */
   // @ts-expect-error Reserved for future use
   private static _generateDailyBulletinPrompt(): string {
@@ -46,7 +46,7 @@ Do NOT use greeting phrases or sign-offs. Just deliver the bulletin message.`;
 
   /**
    * Generate a lore bulletin prompt for SYSOP-13
-   * Reserved for future Kiro API integration
+   * Reserved for future AI integration
    */
   // @ts-expect-error Reserved for future use
   private static _generateLoreBulletinPrompt(): string {
@@ -65,7 +65,7 @@ Do NOT use greeting phrases or sign-offs. Just deliver the lore fragment.`;
 
   /**
    * Generate an announcement bulletin prompt for SYSOP-13
-   * Reserved for future Kiro API integration
+   * Reserved for future AI integration
    */
   // @ts-expect-error Reserved for future use
   private static _generateAnnouncementPrompt(topic: string): string {
@@ -85,11 +85,11 @@ Do NOT use greeting phrases or sign-offs. Just deliver the announcement.`;
 
   /**
    * Create a daily bulletin using SYSOP-13's voice
-   * In a full implementation, this would call the Kiro API
+   * In a full implementation, this would call the AI service
    * For now, it creates sample bulletins
    */
   static async createDailyBulletin(): Promise<void> {
-    // TODO: Integrate with Kiro API for AI-generated content
+    // TODO: Integrate with Gemini AI for AI-generated content
     // For now, use template-based messages
 
     const templates = [

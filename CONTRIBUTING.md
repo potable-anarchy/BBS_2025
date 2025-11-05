@@ -1,6 +1,6 @@
-# Contributing to Vibe Kanban
+# Contributing to The Dead Net BBS
 
-Thank you for your interest in contributing to Vibe Kanban - The Dead Net BBS! This document provides guidelines and information for contributing to the project.
+Thank you for your interest in contributing to The Dead Net BBS! This document provides guidelines and information for contributing to the project.
 
 ## Table of Contents
 
@@ -40,13 +40,13 @@ This project embraces the spirit of the old internet - respectful, collaborative
 
 2. **Clone your fork:**
 ```bash
-git clone https://github.com/YOUR_USERNAME/vibe-kanban.git
-cd vibe-kanban
+git clone https://github.com/YOUR_USERNAME/BBS_2025.git
+cd BBS_2025
 ```
 
 3. **Add upstream remote:**
 ```bash
-git remote add upstream https://github.com/ORIGINAL_OWNER/vibe-kanban.git
+git remote add upstream https://github.com/ORIGINAL_OWNER/BBS_2025.git
 ```
 
 4. **Install dependencies:**

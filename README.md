@@ -1,4 +1,4 @@
-# Vibe Kanban - The Dead Net BBS
+# The Dead Net BBS
 
 > "Where the Dead Lines Come Alive"
 
@@ -22,7 +22,7 @@ A full-stack retro BBS (Bulletin Board System) with a modern twist - built with 
 
 ## Overview
 
-**Vibe Kanban** is a full-stack web application that combines modern real-time collaboration features with a retro terminal aesthetic. Built for the Kiroween Hackathon, it showcases advanced AI integration through the SYSOP-13 agent - a resurrected BBS system operator with personality, memory, and context-aware behavior.
+**The Dead Net BBS** is a full-stack retro BBS (Bulletin Board System) that recreates the nostalgic experience of 1990s online communities with modern technology. It showcases advanced AI integration through the SYSOP-13 agent - a resurrected BBS system operator with personality, memory, and context-aware behavior.
 
 ### What Makes This Special?
 
@@ -72,7 +72,7 @@ The star of the show - a fully-realized AI system operator with:
 
 ### 📋 Message Boards & Threading
 
-- **Kanban-Style Boards**: Organize discussions and content
+- **Message Boards**: Classic BBS-style discussion boards
 - **Post Threading**: Reply chains with parent-child relationships
 - **Board Management**: Create, update, list boards
 - **Terminal Navigation**: Browse boards and posts via command line

@@ -83,7 +83,7 @@ Vibe Kanban follows a client-server architecture with real-time bidirectional co
 4. **Backend Routing**: Express routes to appropriate handler
 5. **Service Layer**: Business logic executed
 6. **Data Persistence**: Database operations performed
-7. **AI Integration**: Optional Kiro hook triggered
+7. **AI Integration**: Optional Gemini AI call triggered
 8. **Response**: Data flows back through layers to client
 
 ## Technology Stack

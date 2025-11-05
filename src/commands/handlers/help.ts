@@ -25,7 +25,7 @@ export const helpCommand: CommandHandler = {
 
 function getGeneralHelp(): CommandResult {
   const output = `
-${fmt.header('VIBE KANBAN BBS - COMMAND REFERENCE')}
+${fmt.header('THE DEAD NET BBS - COMMAND REFERENCE')}
 
 ${fmt.ANSI.FG_BRIGHT_YELLOW}AVAILABLE COMMANDS:${fmt.ANSI.RESET}
 

@@ -1,5 +1,5 @@
 /**
- * API service for interacting with the vibe-kanban backend
+ * API service for interacting with the BBS backend
  */
 
 import type {

@@ -1,8 +1,8 @@
 {
-  "name": "vibe-kanban",
+  "name": "the-dead-net",
   "version": "1.0.0",
   "private": true,
-  "description": "The Dead Net BBS - A retro terminal-style BBS with AI-powered SYSOP (SYSOP-13), real-time chat, and nostalgic 1990s aesthetic. Built for Kiroween Hackathon.",
+  "description": "The Dead Net - A modern BBS remaster with AI-powered SYSOP-13, real-time chat, and authentic retro terminal experience.",
   "scripts": {
     "dev": "vite",
     "dev:server": "nodemon server.cjs",
@@ -23,9 +23,9 @@
     "bulletin-board-system",
     "terminal",
     "retro",
-    "ai-agent",
-    "kiro",
-    "sysop",
+    "ai-sysop",
+    "gemini",
+    "sysop-13",
     "websocket",
     "real-time-chat",
     "react",
@@ -37,8 +37,7 @@
     "1990s",
     "nostalgic",
     "crt-effects",
-    "kiroween",
-    "hackathon"
+    "dead-net"
   ],
   "author": "",
   "license": "MIT",

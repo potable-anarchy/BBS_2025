@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { terminalTheme } from '../styles/theme';
 
 // Animations
@@ -82,7 +82,7 @@ const ModemLine = styled.div<{ delay?: number; glitchEffect?: boolean }>`
   animation: ${fadeIn} 0.2s ease-in;
   animation-delay: ${props => props.delay || 0}ms;
   animation-fill-mode: both;
-  ${props => props.glitchEffect && `animation: ${glitch} 0.3s ease-in-out;`}
+  ${props => props.glitchEffect && css`animation: ${glitch} 0.3s ease-in-out;`}
 `;
 
 const HandshakeNoise = styled.div`

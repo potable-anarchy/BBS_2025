@@ -172,9 +172,9 @@ function AppContent() {
     const cmd = command.toLowerCase().trim();
 
     if (cmd === 'whoami') {
-      return 'vibe-kanban-user';
+      return session?.handle || 'anonymous';
     } else if (cmd === 'pwd') {
-      return '/home/vibe-kanban';
+      return '/home/deadnet';
     } else if (cmd.startsWith('calc ')) {
       // Simple calculator without eval for security
       const expression = command.substring(5).trim();
@@ -248,8 +248,8 @@ function AppContent() {
         />
         <AppContainer>
           <PageHeader>
-            <Title>Vibe Kanban Terminal</Title>
-            <Subtitle>A terminal-style UI framework built with React + TypeScript</Subtitle>
+            <Title>THE DEAD NET</Title>
+            <Subtitle>Where old connections never truly die...</Subtitle>
           </PageHeader>
 
           <ControlsContainer>
@@ -302,12 +302,12 @@ function AppContent() {
                       <SectionTitle>Custom Terminal Component</SectionTitle>
                       <Terminal
                         prompt="$"
-                        welcomeMessage={`Welcome to Vibe Kanban Terminal!
-Version 1.0.0
+                        welcomeMessage={`Welcome to THE DEAD NET
+Version 13.0.0 - SYSOP-13 Active
 Type "help" for available commands.
 
 Try these custom commands:
-  whoami  - Show current user
+  whoami  - Show current handle
   pwd     - Print working directory
   calc    - Calculate expressions (e.g., calc 2 + 2)
 `}

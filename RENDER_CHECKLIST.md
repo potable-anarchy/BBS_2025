@@ -7,7 +7,7 @@ Use this checklist to ensure a smooth deployment to Render.
 - [ ] Code is committed and pushed to GitHub/GitLab/Bitbucket
 - [ ] All tests pass locally
 - [ ] Production build works: `npm run build`
-- [ ] You have a Kiro API key ready
+- [ ] You have a Gemini API key ready
 - [ ] You have a Render account
 
 ## Initial Setup
@@ -27,15 +27,13 @@ Set these in Render Dashboard → Environment:
 ### Required
 - [ ] `NODE_ENV` = `production`
 - [ ] `PORT` = `10000`
-- [ ] `KIRO_API_KEY` = `your_actual_api_key`
+- [ ] `GEMINI_API_KEY` = `your_actual_api_key`
 
 ### Update After First Deploy
 - [ ] `ALLOWED_ORIGINS` = `https://your-app.onrender.com`
 
 ### Optional (with defaults)
-- [ ] `KIRO_API_URL` = `https://api.kiro.ai/v1`
-- [ ] `KIRO_TIMEOUT` = `30000`
-- [ ] `DATABASE_PATH` = `/data/kanban.db`
+- [ ] `DATABASE_PATH` = `/data/bbs.db`
 - [ ] `LOG_LEVEL` = `INFO`
 
 ## Persistent Storage
@@ -49,7 +47,7 @@ Set these in Render Dashboard → Environment:
 
 - [ ] Click "Create Web Service"
 - [ ] Wait for build to complete (2-5 minutes)
-- [ ] Note your app URL (e.g., https://vibe-kanban.onrender.com)
+- [ ] Note your app URL (e.g., https://the-dead-net.onrender.com)
 
 ## Post-Deployment Configuration
 

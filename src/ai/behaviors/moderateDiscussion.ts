@@ -9,7 +9,6 @@ import type {
   ModerationDecision,
   SysopConfig,
 } from '../../types/sysop';
-import type { KiroTaskRequest } from '../../types/kiro';
 import { generateResponse, moderationTemplates } from '../responseTemplates';
 
 /**
@@ -67,12 +66,12 @@ export function analyzeContent(content: string): ModerationDecision {
 }
 
 /**
- * Create Kiro task request for AI-based moderation
+ * Create task request for AI-based moderation
  */
 export function createModerationTask(
   context: BehaviorContext,
   config: SysopConfig
-): KiroTaskRequest {
+): any {
   const post = context.post;
   if (!post) {
     throw new Error('No post provided for moderation');
@@ -185,8 +184,8 @@ export async function moderateDiscussion(
       return processModerationDecision(quickDecision, context, config);
     }
 
-    // For borderline cases, we could call Kiro AI for deeper analysis
-    // This would require integration with the Kiro API
+    // For borderline cases, we could call Gemini AI for deeper analysis
+    // This would require integration with the AI service
     // For now, use pattern-based decision
     return processModerationDecision(quickDecision, context, config);
   } catch (error) {

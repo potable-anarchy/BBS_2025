@@ -9,7 +9,6 @@ import type {
   SysopConfig,
 } from '../../types/sysop';
 import type { Post } from '../../types/post';
-import type { KiroTaskRequest } from '../../types/kiro';
 import {
   generateResponse,
   characterResponseTemplates,
@@ -141,12 +140,12 @@ export function generateSimpleResponse(
 }
 
 /**
- * Create Kiro task for AI-generated response
+ * Create task for AI-generated response
  */
 export function createResponseTask(
   context: BehaviorContext,
   config: SysopConfig
-): KiroTaskRequest {
+): any {
   const post = context.post;
   const posts = context.posts || [];
 
@@ -261,7 +260,7 @@ export async function respondInCharacter(
       };
     }
 
-    // Generate simple response (could be replaced with Kiro AI call)
+    // Generate simple response (could be replaced with Gemini AI call)
     let response = generateSimpleResponse(context, config);
 
     // Inject lore if enabled

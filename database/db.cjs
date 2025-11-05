@@ -5,7 +5,7 @@ const fs = require('fs');
 class DatabaseManager {
   constructor() {
     this.db = null;
-    this.dbPath = path.join(__dirname, '..', 'data', 'kanban.db');
+    this.dbPath = path.join(__dirname, '..', 'data', 'bbs.db');
   }
 
   /**

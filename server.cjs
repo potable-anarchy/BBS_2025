@@ -11,12 +11,12 @@ const { ChatHandler } = require('./src/chat/chatHandler.cjs');
 const CommandHandler = require('./backend/commands/commandHandler');
 const ChatService = require('./services/chatService.cjs');
 
-// Import session management, logging, and Kiro hooks
+// Import session management and logging
 const sessionManager = require('./services/sessionManager.cjs');
 const logger = require('./utils/logger.cjs');
 const sysop = require('./services/sysopInstance.cjs');
 
-// Environment variable validation - removed KIRO_API_KEY requirement
+// Environment variable validation
 const requiredEnvVars = [];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
@@ -125,7 +125,7 @@ app.get('/api', (req, res) => {
 const boardRoutes = require('./routes/boards.cjs');
 app.use('/api', boardRoutes);
 
-// Kiro API routes removed - using Gemini AI instead
+// AI routes handled by Gemini integration
 
 // Chat stats endpoint
 app.get('/api/chat/stats', (req, res) => {

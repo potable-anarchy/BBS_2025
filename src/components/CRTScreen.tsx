@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { terminalTheme } from '../styles/theme';
 import {
   buildCRTEffects,
@@ -70,6 +70,42 @@ const CRTContainer = styled.div<{ $config: CRTConfig; $enabled: boolean }>`
   }
 `;
 
+const noise = keyframes`
+  0% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-5%, -5%);
+  }
+  20% {
+    transform: translate(-10%, 5%);
+  }
+  30% {
+    transform: translate(5%, -10%);
+  }
+  40% {
+    transform: translate(-5%, 15%);
+  }
+  50% {
+    transform: translate(-10%, 5%);
+  }
+  60% {
+    transform: translate(15%, 0%);
+  }
+  70% {
+    transform: translate(0%, 10%);
+  }
+  80% {
+    transform: translate(-15%, 0%);
+  }
+  90% {
+    transform: translate(10%, 5%);
+  }
+  100% {
+    transform: translate(5%, 0%);
+  }
+`;
+
 const CRTNoise = styled.div<{ $enabled: boolean }>`
   position: absolute;
   top: 0;
@@ -80,43 +116,7 @@ const CRTNoise = styled.div<{ $enabled: boolean }>`
   z-index: 10;
   opacity: ${({ $enabled }) => ($enabled ? 0.02 : 0)};
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
-  animation: noise 0.2s steps(10) infinite;
-
-  @keyframes noise {
-    0% {
-      transform: translate(0, 0);
-    }
-    10% {
-      transform: translate(-5%, -5%);
-    }
-    20% {
-      transform: translate(-10%, 5%);
-    }
-    30% {
-      transform: translate(5%, -10%);
-    }
-    40% {
-      transform: translate(-5%, 15%);
-    }
-    50% {
-      transform: translate(-10%, 5%);
-    }
-    60% {
-      transform: translate(15%, 0%);
-    }
-    70% {
-      transform: translate(0%, 10%);
-    }
-    80% {
-      transform: translate(-15%, 0%);
-    }
-    90% {
-      transform: translate(10%, 5%);
-    }
-    100% {
-      transform: translate(5%, 0%);
-    }
-  }
+  animation: ${noise} 0.2s steps(10) infinite;
 `;
 
 /**

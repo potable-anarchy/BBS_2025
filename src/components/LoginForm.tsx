@@ -193,8 +193,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   return (
     <LoginContainer>
       <LoginBox>
-        <Title>VIBE KANBAN</Title>
-        <Subtitle>Terminal-based collaborative task board</Subtitle>
+        <Title>THE DEAD NET</Title>
+        <Subtitle>Where old connections never truly die...</Subtitle>
 
         <BulletinBoard showLatestOnly={true} compact={true} />
 
