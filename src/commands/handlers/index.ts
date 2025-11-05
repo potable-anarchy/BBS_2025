@@ -9,3 +9,4 @@ export { listCommand } from './list';
 export { postCommand } from './post';
 export { newsCommand } from './news';
 export { chatHandler } from './chat';
+export { rpgCommand } from './rpg';
