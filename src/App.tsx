@@ -1,17 +1,18 @@
-import { useState } from 'react';
-import styled from 'styled-components';
-import Terminal from './components/Terminal';
-import XTermTerminal from './components/XTermTerminal';
-import RetroTerminalDemo from './components/RetroTerminalDemo';
-import ModemDialIn from './components/ModemDialIn';
-import BoardList from './components/BoardList';
-import BulletinBoard from './components/BulletinBoard';
-import { LoginForm, Header, ChatFeed } from './components';
-import { GlobalStyles } from './styles/GlobalStyles';
-import CRTScreen from './components/CRTScreen';
-import type { CRTConfig } from './styles/crtEffects';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { useWebSocket } from './hooks/useWebSocket';
+import { useState } from "react";
+import styled, { ThemeProvider } from "styled-components";
+import Terminal from "./components/Terminal";
+import XTermTerminal from "./components/XTermTerminal";
+import RetroTerminalDemo from "./components/RetroTerminalDemo";
+import ModemDialIn from "./components/ModemDialIn";
+import BoardList from "./components/BoardList";
+import BulletinBoard from "./components/BulletinBoard";
+import { LoginForm, Header, ChatFeed } from "./components";
+import { GlobalStyles } from "./styles/GlobalStyles";
+import CRTScreen from "./components/CRTScreen";
+import type { CRTConfig } from "./styles/crtEffects";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { useWebSocket } from "./hooks/useWebSocket";
+import { theme } from "./styles/theme";
 
 const AppContainer = styled.div`
   padding: 40px;
@@ -29,10 +30,10 @@ const Title = styled.h1`
   color: #00ff00;
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
   margin-bottom: 10px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
 
   &::before {
-    content: '> ';
+    content: "> ";
     color: #00ff00;
   }
 `;
@@ -96,7 +97,7 @@ const ToggleButton = styled.button`
   border: 2px solid #00ff00;
   color: #00ff00;
   padding: 10px 20px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 14px;
   cursor: pointer;
   border-radius: 4px;
@@ -134,7 +135,7 @@ const CRTControls = styled.div`
 
 const CRTLabel = styled.span`
   color: #00ff00;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 14px;
 `;
 
@@ -144,14 +145,23 @@ const SmallToggleButton = styled(ToggleButton)`
   font-size: 12px;
 `;
 
-type TerminalMode = 'retro' | 'custom' | 'xterm' | 'dialin' | 'boards';
+type TerminalMode = "retro" | "custom" | "xterm" | "dialin" | "boards";
 
 function AppContent() {
-  const { session, isAuthenticated, connectionStatus, login, logout, setConnectionStatus } = useAuth();
-  const [terminalMode, setTerminalMode] = useState<TerminalMode>('dialin');
+  const {
+    session,
+    isAuthenticated,
+    connectionStatus,
+    login,
+    logout,
+    setConnectionStatus,
+  } = useAuth();
+  const [terminalMode, setTerminalMode] = useState<TerminalMode>("dialin");
   const [showDialIn, setShowDialIn] = useState(true);
   const [crtEnabled, setCrtEnabled] = useState<boolean>(true);
-  const [crtIntensity, setCrtIntensity] = useState<'low' | 'medium' | 'high'>('medium');
+  const [crtIntensity, setCrtIntensity] = useState<"low" | "medium" | "high">(
+    "medium",
+  );
   const [crtConfig, setCrtConfig] = useState<Partial<CRTConfig>>({
     scanlines: true,
     flicker: true,
@@ -159,7 +169,7 @@ function AppContent() {
     vignette: true,
     chromaticAberration: false,
     curvature: false,
-    intensity: 'medium',
+    intensity: "medium",
   });
 
   // Initialize WebSocket connection when authenticated
@@ -171,14 +181,16 @@ function AppContent() {
   const handleCustomCommand = (command: string): string => {
     const cmd = command.toLowerCase().trim();
 
-    if (cmd === 'whoami') {
-      return session?.handle || 'anonymous';
-    } else if (cmd === 'pwd') {
-      return '/home/deadnet';
-    } else if (cmd.startsWith('calc ')) {
+    if (cmd === "whoami") {
+      return session?.handle || "anonymous";
+    } else if (cmd === "pwd") {
+      return "/home/deadnet";
+    } else if (cmd.startsWith("calc ")) {
       // Simple calculator without eval for security
       const expression = command.substring(5).trim();
-      const match = expression.match(/^(\d+(?:\.\d+)?)\s*([+\-*/])\s*(\d+(?:\.\d+)?)$/);
+      const match = expression.match(
+        /^(\d+(?:\.\d+)?)\s*([+\-*/])\s*(\d+(?:\.\d+)?)$/,
+      );
 
       if (match) {
         const [, num1, operator, num2] = match;
@@ -187,23 +199,36 @@ function AppContent() {
 
         let result: number;
         switch (operator) {
-          case '+': result = a + b; break;
-          case '-': result = a - b; break;
-          case '*': result = a * b; break;
-          case '/': result = a / b; break;
-          default: return 'Error: Invalid operator';
+          case "+":
+            result = a + b;
+            break;
+          case "-":
+            result = a - b;
+            break;
+          case "*":
+            result = a * b;
+            break;
+          case "/":
+            result = a / b;
+            break;
+          default:
+            return "Error: Invalid operator";
         }
 
         return `Result: ${result}`;
       }
-      return 'Error: Invalid expression. Use format: calc 2 + 2';
+      return "Error: Invalid expression. Use format: calc 2 + 2";
     }
 
     return `Command not recognized: ${command}. Try "help" for available commands.`;
   };
 
   const toggleCrtIntensity = () => {
-    const intensities: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
+    const intensities: Array<"low" | "medium" | "high"> = [
+      "low",
+      "medium",
+      "high",
+    ];
     const currentIndex = intensities.indexOf(crtIntensity);
     const nextIndex = (currentIndex + 1) % intensities.length;
     const nextIntensity = intensities[nextIndex];
@@ -222,15 +247,17 @@ function AppContent() {
   }
 
   // Show dial-in animation first (after login)
-  if (showDialIn && terminalMode === 'dialin') {
+  if (showDialIn && terminalMode === "dialin") {
     return (
       <>
         <GlobalStyles />
         <CRTScreen enabled={crtEnabled} config={crtConfig}>
-          <ModemDialIn onComplete={() => {
-            setShowDialIn(false);
-            setTerminalMode('retro');
-          }} />
+          <ModemDialIn
+            onComplete={() => {
+              setShowDialIn(false);
+              setTerminalMode("retro");
+            }}
+          />
         </CRTScreen>
       </>
     );
@@ -253,22 +280,30 @@ function AppContent() {
           </PageHeader>
 
           <ControlsContainer>
-            <ToggleButton onClick={() => {
-              const modes: TerminalMode[] = ['dialin', 'boards', 'retro', 'custom', 'xterm'];
-              const currentIndex = modes.indexOf(terminalMode);
-              const nextIndex = (currentIndex + 1) % modes.length;
-              if (modes[nextIndex] === 'dialin') {
-                setShowDialIn(true);
-              }
-              setTerminalMode(modes[nextIndex]);
-            }}>
+            <ToggleButton
+              onClick={() => {
+                const modes: TerminalMode[] = [
+                  "dialin",
+                  "boards",
+                  "retro",
+                  "custom",
+                  "xterm",
+                ];
+                const currentIndex = modes.indexOf(terminalMode);
+                const nextIndex = (currentIndex + 1) % modes.length;
+                if (modes[nextIndex] === "dialin") {
+                  setShowDialIn(true);
+                }
+                setTerminalMode(modes[nextIndex]);
+              }}
+            >
               Mode: {terminalMode.toUpperCase()}
             </ToggleButton>
 
             <CRTControls>
               <CRTLabel>CRT Effects:</CRTLabel>
               <SmallToggleButton onClick={() => setCrtEnabled(!crtEnabled)}>
-                {crtEnabled ? 'ON' : 'OFF'}
+                {crtEnabled ? "ON" : "OFF"}
               </SmallToggleButton>
               {crtEnabled && (
                 <SmallToggleButton onClick={toggleCrtIntensity}>
@@ -281,22 +316,24 @@ function AppContent() {
           <ContentLayout>
             <MainPanel>
               <CRTScreen enabled={crtEnabled} config={crtConfig}>
-                {terminalMode === 'boards' ? (
+                {terminalMode === "boards" ? (
                   <>
                     <TerminalSection>
                       <BulletinBoard limit={5} />
                     </TerminalSection>
                     <TerminalSection>
                       <SectionTitle>Message Boards</SectionTitle>
-                      <BoardList onBoardSelect={(board) => {
-                        console.log('Selected board:', board);
-                        // TODO: Navigate to board view
-                      }} />
+                      <BoardList
+                        onBoardSelect={(board) => {
+                          console.log("Selected board:", board);
+                          // TODO: Navigate to board view
+                        }}
+                      />
                     </TerminalSection>
                   </>
-                ) : terminalMode === 'retro' ? (
+                ) : terminalMode === "retro" ? (
                   <RetroTerminalDemo />
-                ) : terminalMode === 'custom' ? (
+                ) : terminalMode === "custom" ? (
                   <TerminalGrid>
                     <TerminalSection>
                       <SectionTitle>Custom Terminal Component</SectionTitle>
@@ -333,7 +370,7 @@ Type "help" for available commands.
 
 `}
                       onCommand={(cmd) => {
-                        console.log('Command received:', cmd);
+                        console.log("Command received:", cmd);
                       }}
                     />
                   </TerminalSection>
@@ -343,10 +380,7 @@ Type "help" for available commands.
 
             <ChatPanel>
               <CRTScreen enabled={crtEnabled} config={crtConfig}>
-                <ChatFeed
-                  socket={socket}
-                  currentUsername={session?.handle}
-                />
+                <ChatFeed socket={socket} currentUsername={session?.handle} />
               </CRTScreen>
             </ChatPanel>
           </ContentLayout>
@@ -358,9 +392,11 @@ Type "help" for available commands.
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider theme={theme}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

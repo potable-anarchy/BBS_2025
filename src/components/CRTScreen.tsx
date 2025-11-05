@@ -1,14 +1,14 @@
-import React from 'react';
-import styled, { keyframes } from 'styled-components';
-import { terminalTheme } from '../styles/theme';
+import React from "react";
+import styled, { keyframes, css } from "styled-components";
+import { terminalTheme } from "../styles/theme";
 import {
   buildCRTEffects,
   defaultCRTConfig,
   phosphorGlowEffect,
   chromaticAberrationEffect,
   intensityValues,
-} from '../styles/crtEffects';
-import type { CRTConfig } from '../styles/crtEffects';
+} from "../styles/crtEffects";
+import type { CRTConfig } from "../styles/crtEffects";
 
 interface CRTScreenProps {
   children: React.ReactNode;
@@ -29,39 +29,39 @@ const CRTContainer = styled.div<{ $config: CRTConfig; $enabled: boolean }>`
   /* Screen bezel effect - simulates CRT monitor frame */
   ${({ $enabled }) =>
     $enabled &&
-    `
-    box-shadow: ${terminalTheme.crt.bezel};
-    border-radius: ${terminalTheme.border.radius};
-  `}
+    css`
+      box-shadow: ${terminalTheme.crt.bezel};
+      border-radius: ${terminalTheme.border.radius};
+    `}
 
   /* Apply phosphor glow to text content */
   ${({ $config, $enabled }) =>
     $enabled &&
     $config.phosphorGlow &&
-    `
-    & * {
-      ${phosphorGlowEffect(intensityValues[$config.intensity].glowIntensity)}
-    }
-  `}
+    css`
+      & * {
+        ${phosphorGlowEffect(intensityValues[$config.intensity].glowIntensity)}
+      }
+    `}
 
   /* Apply chromatic aberration to text */
   ${({ $config, $enabled }) =>
     $enabled &&
     $config.chromaticAberration &&
-    `
-    & * {
-      ${chromaticAberrationEffect}
-    }
-  `}
+    css`
+      & * {
+        ${chromaticAberrationEffect}
+      }
+    `}
 
   /* Screen curvature effect */
   ${({ $config, $enabled }) =>
     $enabled &&
     $config.curvature &&
-    `
-    transform: ${terminalTheme.crt.curvature};
-    transform-style: preserve-3d;
-  `}
+    css`
+      transform: ${terminalTheme.crt.curvature};
+      transform-style: preserve-3d;
+    `}
 
   /* Content wrapper */
   & > * {
@@ -150,7 +150,11 @@ export const CRTScreen: React.FC<CRTScreenProps> = ({
   };
 
   return (
-    <CRTContainer $config={mergedConfig} $enabled={enabled} className={className}>
+    <CRTContainer
+      $config={mergedConfig}
+      $enabled={enabled}
+      className={className}
+    >
       {children}
       <CRTNoise $enabled={enabled} />
     </CRTContainer>

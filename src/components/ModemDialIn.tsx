@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
-import { terminalTheme } from '../styles/theme';
+import React, { useState, useEffect } from "react";
+import styled, { keyframes, css } from "styled-components";
+import { terminalTheme } from "../styles/theme";
 
 // Animations
 const blink = keyframes`
@@ -73,16 +73,20 @@ const ModemOutput = styled.div`
   margin-bottom: 1rem;
 `;
 
-const ModemLine = styled.div<{ delay?: number; glitchEffect?: boolean }>`
+const ModemLine = styled.div<{ $delay?: number; $glitchEffect?: boolean }>`
   font-family: ${terminalTheme.fonts.primary};
   font-size: ${terminalTheme.fontSize.base};
   line-height: 1.6;
   color: ${terminalTheme.foreground.primary};
   margin-bottom: 0.3rem;
   animation: ${fadeIn} 0.2s ease-in;
-  animation-delay: ${props => props.delay || 0}ms;
+  animation-delay: ${(props) => props.$delay || 0}ms;
   animation-fill-mode: both;
-  ${props => props.glitchEffect && css`animation: ${glitch} 0.3s ease-in-out;`}
+  ${(props) =>
+    props.$glitchEffect &&
+    css`
+      animation: ${glitch} 0.3s ease-in-out;
+    `}
 `;
 
 const HandshakeNoise = styled.div`
@@ -94,31 +98,37 @@ const HandshakeNoise = styled.div`
   line-height: 1.4;
 `;
 
-const StatusLine = styled.div<{ status: 'connecting' | 'connected' | 'error' }>`
+const StatusLine = styled.div<{
+  $status: "connecting" | "connected" | "error";
+}>`
   font-family: ${terminalTheme.fonts.primary};
   font-size: ${terminalTheme.fontSize.lg};
   font-weight: bold;
   text-align: center;
   padding: 1rem;
   margin: 1rem 0;
-  border: 2px solid ${props =>
-    props.status === 'connected' ? terminalTheme.colors.brightGreen :
-    props.status === 'error' ? terminalTheme.colors.red :
-    terminalTheme.colors.yellow
-  };
-  color: ${props =>
-    props.status === 'connected' ? terminalTheme.colors.brightGreen :
-    props.status === 'error' ? terminalTheme.colors.red :
-    terminalTheme.colors.yellow
-  };
-  background: ${props =>
-    props.status === 'connected' ? 'rgba(0, 255, 0, 0.1)' :
-    props.status === 'error' ? 'rgba(255, 0, 0, 0.1)' :
-    'rgba(255, 255, 0, 0.1)'
-  };
+  border: 2px solid
+    ${(props) =>
+      props.$status === "connected"
+        ? terminalTheme.colors.brightGreen
+        : props.$status === "error"
+          ? terminalTheme.colors.red
+          : terminalTheme.colors.yellow};
+  color: ${(props) =>
+    props.$status === "connected"
+      ? terminalTheme.colors.brightGreen
+      : props.$status === "error"
+        ? terminalTheme.colors.red
+        : terminalTheme.colors.yellow};
+  background: ${(props) =>
+    props.$status === "connected"
+      ? "rgba(0, 255, 0, 0.1)"
+      : props.$status === "error"
+        ? "rgba(255, 0, 0, 0.1)"
+        : "rgba(255, 255, 0, 0.1)"};
   text-shadow: 0 0 10px currentColor;
   animation: ${blink} 1s infinite;
-  animation-delay: ${props => props.status === 'connected' ? '0s' : '0s'};
+  animation-delay: ${(props) => (props.status === "connected" ? "0s" : "0s")};
 `;
 
 const Cursor = styled.span`
@@ -142,7 +152,7 @@ const ProgressBar = styled.div`
 
 const ProgressFill = styled.div<{ width: number }>`
   height: 100%;
-  width: ${props => props.width}%;
+  width: ${(props) => props.width}%;
   background: ${terminalTheme.colors.brightGreen};
   transition: width 0.3s ease;
   box-shadow: 0 0 10px ${terminalTheme.colors.brightGreen};
@@ -164,48 +174,43 @@ interface ModemDialInProps {
 
 // Modem handshake simulation stages
 type DialInStage =
-  | 'initial'
-  | 'dialing'
-  | 'handshake1'
-  | 'handshake2'
-  | 'handshake3'
-  | 'negotiating'
-  | 'connected'
-  | 'ready';
+  | "initial"
+  | "dialing"
+  | "handshake1"
+  | "handshake2"
+  | "handshake3"
+  | "negotiating"
+  | "connected"
+  | "ready";
 
 export const ModemDialIn: React.FC<ModemDialInProps> = ({
   onComplete,
-  phoneNumber = '555-DEAD'
+  phoneNumber = "555-DEAD",
 }) => {
-  const [stage, setStage] = useState<DialInStage>('initial');
+  const [stage, setStage] = useState<DialInStage>("initial");
   const [lines, setLines] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
 
   // Add a new line to the output
   const addLine = (text: string) => {
-    setLines(prev => [...prev, text]);
+    setLines((prev) => [...prev, text]);
   };
 
   // Simulate modem sounds with Web Audio API (visual representation)
-  const playModemSound = (type: 'dial' | 'handshake' | 'carrier') => {
+  const playModemSound = (type: "dial" | "handshake" | "carrier") => {
     // This is a visual representation of the sounds
     // In a real implementation, you could use Web Audio API to generate tones
     const sounds: { [key: string]: string[] } = {
-      dial: [
-        '♪ BEEP... BEEP... BEEP...',
-        '♫ Dialing...'
-      ],
+      dial: ["♪ BEEP... BEEP... BEEP...", "♫ Dialing..."],
       handshake: [
-        '◊◊◊ KSHHHHhhhhh ◊◊◊',
-        '≋≋≋ BEEEEeeeep SCREECH ≋≋≋',
-        '∿∿∿ WhIRRRrrr CRACKle ∿∿∿',
-        '≈≈≈ BZZZzzzzz POP ≈≈≈',
-        '~~~~ EEEEEeeee HISS ~~~~'
+        "◊◊◊ KSHHHHhhhhh ◊◊◊",
+        "≋≋≋ BEEEEeeeep SCREECH ≋≋≋",
+        "∿∿∿ WhIRRRrrr CRACKle ∿∿∿",
+        "≈≈≈ BZZZzzzzz POP ≈≈≈",
+        "~~~~ EEEEEeeee HISS ~~~~",
       ],
-      carrier: [
-        '♪♫ Carrier detected ♫♪'
-      ]
+      carrier: ["♪♫ Carrier detected ♫♪"],
     };
 
     return sounds[type];
@@ -215,100 +220,106 @@ export const ModemDialIn: React.FC<ModemDialInProps> = ({
   useEffect(() => {
     const runDialInSequence = async () => {
       // Initial
-      if (stage === 'initial') {
-        addLine('');
-        addLine('╔══════════════════════════════════════════════════════════════════╗');
-        addLine('║              MODEM CONNECTION INITIALIZING...                    ║');
-        addLine('╚══════════════════════════════════════════════════════════════════╝');
-        addLine('');
+      if (stage === "initial") {
+        addLine("");
+        addLine(
+          "╔══════════════════════════════════════════════════════════════════╗",
+        );
+        addLine(
+          "║              MODEM CONNECTION INITIALIZING...                    ║",
+        );
+        addLine(
+          "╚══════════════════════════════════════════════════════════════════╝",
+        );
+        addLine("");
 
-        setTimeout(() => setStage('dialing'), 1500);
+        setTimeout(() => setStage("dialing"), 1500);
       }
 
       // Dialing
-      if (stage === 'dialing') {
+      if (stage === "dialing") {
         addLine(`ATD ${phoneNumber}`);
-        addLine('');
+        addLine("");
         setProgress(10);
 
         setTimeout(() => {
-          playModemSound('dial').forEach((sound, i) => {
+          playModemSound("dial").forEach((sound, i) => {
             setTimeout(() => addLine(sound), i * 500);
           });
         }, 500);
 
         setTimeout(() => {
-          addLine('');
-          addLine('◊ Connecting to The Dead Net...');
-          setStage('handshake1');
+          addLine("");
+          addLine("◊ Connecting to The Dead Net...");
+          setStage("handshake1");
         }, 2000);
       }
 
       // Handshake Phase 1
-      if (stage === 'handshake1') {
+      if (stage === "handshake1") {
         setProgress(25);
-        addLine('');
-        addLine('>>> HANDSHAKE INITIATED <<<');
-        addLine('');
+        addLine("");
+        addLine(">>> HANDSHAKE INITIATED <<<");
+        addLine("");
 
         setTimeout(() => {
-          const noises = playModemSound('handshake');
+          const noises = playModemSound("handshake");
           noises.forEach((noise, i) => {
             setTimeout(() => addLine(noise), i * 400);
           });
         }, 500);
 
-        setTimeout(() => setStage('handshake2'), 3000);
+        setTimeout(() => setStage("handshake2"), 3000);
       }
 
       // Handshake Phase 2
-      if (stage === 'handshake2') {
+      if (stage === "handshake2") {
         setProgress(50);
-        addLine('');
-        addLine('▓ Negotiating protocol...');
-        addLine('▓ V.90 Protocol detected');
-        addLine('▓ Error correction: ENABLED');
-        addLine('▓ Data compression: ENABLED');
+        addLine("");
+        addLine("▓ Negotiating protocol...");
+        addLine("▓ V.90 Protocol detected");
+        addLine("▓ Error correction: ENABLED");
+        addLine("▓ Data compression: ENABLED");
 
-        setTimeout(() => setStage('handshake3'), 2000);
+        setTimeout(() => setStage("handshake3"), 2000);
       }
 
       // Handshake Phase 3
-      if (stage === 'handshake3') {
+      if (stage === "handshake3") {
         setProgress(75);
-        addLine('');
-        addLine('♫ Training carrier...');
-        playModemSound('carrier').forEach((sound) => addLine(sound));
-        addLine('');
-        addLine('■ Equalizer training: OK');
-        addLine('■ Echo cancellation: OK');
-        addLine('■ Signal quality: EXCELLENT');
+        addLine("");
+        addLine("♫ Training carrier...");
+        playModemSound("carrier").forEach((sound) => addLine(sound));
+        addLine("");
+        addLine("■ Equalizer training: OK");
+        addLine("■ Echo cancellation: OK");
+        addLine("■ Signal quality: EXCELLENT");
 
-        setTimeout(() => setStage('negotiating'), 2000);
+        setTimeout(() => setStage("negotiating"), 2000);
       }
 
       // Negotiating
-      if (stage === 'negotiating') {
+      if (stage === "negotiating") {
         setProgress(90);
-        addLine('');
-        addLine('═══════════════════════════════════════════════════');
-        addLine('  Negotiating connection speed...');
-        addLine('  Testing line quality...');
+        addLine("");
+        addLine("═══════════════════════════════════════════════════");
+        addLine("  Negotiating connection speed...");
+        addLine("  Testing line quality...");
 
         setTimeout(() => {
-          addLine('');
-          addLine('  Speed selected: 56000 bps');
-          addLine('═══════════════════════════════════════════════════');
-          setStage('connected');
+          addLine("");
+          addLine("  Speed selected: 56000 bps");
+          addLine("═══════════════════════════════════════════════════");
+          setStage("connected");
         }, 2000);
       }
 
       // Connected
-      if (stage === 'connected') {
+      if (stage === "connected") {
         setProgress(100);
         setShowCursor(false);
 
-        setTimeout(() => setStage('ready'), 1500);
+        setTimeout(() => setStage("ready"), 1500);
       }
     };
 
@@ -317,15 +328,15 @@ export const ModemDialIn: React.FC<ModemDialInProps> = ({
 
   // Handle key press to continue
   useEffect(() => {
-    if (stage === 'ready') {
+    if (stage === "ready") {
       const handleKeyPress = () => {
         if (onComplete) {
           onComplete();
         }
       };
 
-      window.addEventListener('keydown', handleKeyPress);
-      return () => window.removeEventListener('keydown', handleKeyPress);
+      window.addEventListener("keydown", handleKeyPress);
+      return () => window.removeEventListener("keydown", handleKeyPress);
     }
   }, [stage, onComplete]);
 
@@ -335,7 +346,7 @@ export const ModemDialIn: React.FC<ModemDialInProps> = ({
         {/* Logo */}
         <LogoContainer>
           <LogoText>
-{`
+            {`
   ████████╗██╗  ██╗███████╗    ██████╗ ███████╗ █████╗ ██████╗
   ╚══██╔══╝██║  ██║██╔════╝    ██╔══██╗██╔════╝██╔══██╗██╔══██╗
      ██║   ███████║█████╗      ██║  ██║█████╗  ███████║██║  ██║
@@ -358,10 +369,14 @@ export const ModemDialIn: React.FC<ModemDialInProps> = ({
         {/* Modem Output */}
         <ModemOutput>
           {lines.map((line, index) => (
-            <ModemLine key={index} delay={index * 50}>
-              {line.includes('◊') || line.includes('≋') || line.includes('∿') ||
-               line.includes('≈') || line.includes('~') || line.includes('♪') ||
-               line.includes('♫') ? (
+            <ModemLine key={index} $delay={index * 50}>
+              {line.includes("◊") ||
+              line.includes("≋") ||
+              line.includes("∿") ||
+              line.includes("≈") ||
+              line.includes("~") ||
+              line.includes("♪") ||
+              line.includes("♫") ? (
                 <HandshakeNoise>{line}</HandshakeNoise>
               ) : (
                 line
@@ -372,42 +387,40 @@ export const ModemDialIn: React.FC<ModemDialInProps> = ({
         </ModemOutput>
 
         {/* Progress Bar */}
-        {stage !== 'ready' && (
+        {stage !== "ready" && (
           <ProgressBar>
             <ProgressFill width={progress} />
           </ProgressBar>
         )}
 
         {/* Status Messages */}
-        {stage === 'connected' && (
-          <StatusLine status="connected">
+        {stage === "connected" && (
+          <StatusLine $status="connected">
             ╔════════════════════════════════════════════════════╗
             <br />
-            ║           ✓✓✓ CONNECT 56000 ✓✓✓                  ║
+            ║ ✓✓✓ CONNECT 56000 ✓✓✓ ║
             <br />
             ╚════════════════════════════════════════════════════╝
           </StatusLine>
         )}
 
-        {stage === 'ready' && (
+        {stage === "ready" && (
           <>
-            <StatusLine status="connected">
+            <StatusLine $status="connected">
               ╔════════════════════════════════════════════════════╗
               <br />
-              ║     CONNECTION ESTABLISHED - WELCOME TO           ║
+              ║ CONNECTION ESTABLISHED - WELCOME TO ║
               <br />
-              ║            THE DEAD NET BBS                       ║
+              ║ THE DEAD NET BBS ║
               <br />
-              ║                                                   ║
+              ║ ║
               <br />
-              ║     Speed: 56000 bps • Protocol: V.90            ║
+              ║ Speed: 56000 bps • Protocol: V.90 ║
               <br />
               ╚════════════════════════════════════════════════════╝
             </StatusLine>
 
-            <PressKeyPrompt>
-              ▼ PRESS ANY KEY TO CONTINUE ▼
-            </PressKeyPrompt>
+            <PressKeyPrompt>▼ PRESS ANY KEY TO CONTINUE ▼</PressKeyPrompt>
           </>
         )}
       </TerminalScreen>

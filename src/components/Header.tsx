@@ -2,9 +2,9 @@
  * Header component with welcome message and connection status
  */
 
-import styled from 'styled-components';
-import { theme } from '../styles/theme';
-import { ConnectionStatus } from '../context/AuthContext';
+import styled from "styled-components";
+import { theme } from "../styles/theme";
+import { ConnectionStatus } from "../context/AuthContext";
 
 interface HeaderProps {
   handle: string;
@@ -66,13 +66,13 @@ const StatusSection = styled.div`
   }
 `;
 
-const ConnectionIndicator = styled.div<{ status: ConnectionStatus }>`
+const ConnectionIndicator = styled.div<{ $status: ConnectionStatus }>`
   display: flex;
   align-items: center;
   gap: ${theme.spacing.sm};
   font-size: 0.85rem;
-  color: ${({ status }) => {
-    switch (status) {
+  color: ${({ $status }) => {
+    switch ($status) {
       case ConnectionStatus.CONNECTED:
         return theme.colors.success;
       case ConnectionStatus.CONNECTING:
@@ -85,12 +85,12 @@ const ConnectionIndicator = styled.div<{ status: ConnectionStatus }>`
   }};
 `;
 
-const StatusDot = styled.div<{ status: ConnectionStatus }>`
+const StatusDot = styled.div<{ $status: ConnectionStatus }>`
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: ${({ status }) => {
-    switch (status) {
+  background: ${({ $status }) => {
+    switch ($status) {
       case ConnectionStatus.CONNECTED:
         return theme.colors.success;
       case ConnectionStatus.CONNECTING:
@@ -102,8 +102,8 @@ const StatusDot = styled.div<{ status: ConnectionStatus }>`
     }
   }};
   box-shadow: 0 0 8px
-    ${({ status }) => {
-      switch (status) {
+    ${({ $status }) => {
+      switch ($status) {
         case ConnectionStatus.CONNECTED:
           return theme.colors.success;
         case ConnectionStatus.CONNECTING:
@@ -157,13 +157,13 @@ const LogoutButton = styled.button`
 const getStatusText = (status: ConnectionStatus): string => {
   switch (status) {
     case ConnectionStatus.CONNECTED:
-      return 'CONNECTED';
+      return "CONNECTED";
     case ConnectionStatus.CONNECTING:
-      return 'CONNECTING...';
+      return "CONNECTING...";
     case ConnectionStatus.ERROR:
-      return 'ERROR';
+      return "ERROR";
     default:
-      return 'DISCONNECTED';
+      return "DISCONNECTED";
   }
 };
 
@@ -177,8 +177,8 @@ export function Header({ handle, connectionStatus, onLogout }: HeaderProps) {
       </WelcomeSection>
 
       <StatusSection>
-        <ConnectionIndicator status={connectionStatus}>
-          <StatusDot status={connectionStatus} />
+        <ConnectionIndicator $status={connectionStatus}>
+          <StatusDot $status={connectionStatus} />
           {getStatusText(connectionStatus)}
         </ConnectionIndicator>
 
