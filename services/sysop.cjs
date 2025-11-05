@@ -10,7 +10,9 @@ class SysOp {
 
     this.enabled = true;
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    this.model = this.genAI.getGenerativeModel({
+      model: "gemini-2.0-flash-exp",
+    });
 
     // SysOp personality and context
     this.systemPrompt = `You are SYSOP-13, the resurrected system operator of an ancient BBS called "The Dead Net".
