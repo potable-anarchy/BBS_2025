@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import RetroTerminal from './RetroTerminal';
-import { terminalTheme, ansiColors } from '../styles/theme';
+import { terminalTheme } from '../styles/theme';
 
 const DemoContainer = styled.div`
   padding: ${terminalTheme.spacing.xl};
@@ -26,36 +26,6 @@ const Subtitle = styled.p`
   color: ${terminalTheme.foreground.secondary};
   text-align: center;
   max-width: 600px;
-`;
-
-const ColorPalette = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: ${terminalTheme.spacing.md};
-  width: 100%;
-  max-width: 1200px;
-  margin-top: ${terminalTheme.spacing.lg};
-`;
-
-const ColorSwatch = styled.div<{ color: string }>`
-  background: ${props => props.color};
-  padding: ${terminalTheme.spacing.md};
-  border: ${terminalTheme.border.width} solid ${terminalTheme.border.color};
-  border-radius: ${terminalTheme.border.radius};
-  text-align: center;
-  font-size: ${terminalTheme.fontSize.sm};
-  color: ${terminalTheme.foreground.primary};
-  text-shadow: 0 0 5px ${terminalTheme.background.primary};
-`;
-
-const ColorName = styled.div`
-  font-weight: bold;
-  margin-bottom: ${terminalTheme.spacing.xs};
-`;
-
-const ColorCode = styled.div`
-  font-size: ${terminalTheme.fontSize.xs};
-  opacity: 0.8;
 `;
 
 export const RetroTerminalDemo: React.FC = () => {
@@ -98,19 +68,6 @@ export const RetroTerminalDemo: React.FC = () => {
         onCommand={handleCommand}
         initialOutput={initialOutput}
       />
-
-      <Title style={{ fontSize: terminalTheme.fontSize.xl }}>
-        ═══ ANSI Color Palette ═══
-      </Title>
-
-      <ColorPalette>
-        {Object.entries(ansiColors).map(([name, color]) => (
-          <ColorSwatch key={name} color={color}>
-            <ColorName>{name}</ColorName>
-            <ColorCode>{color}</ColorCode>
-          </ColorSwatch>
-        ))}
-      </ColorPalette>
     </DemoContainer>
   );
 };
