@@ -1,47 +1,46 @@
-const { body, query, validationResult } = require('express-validator');
+const { body, query, validationResult } = require("express-validator");
 
 /**
  * Validation rules for creating a new post
  */
 const validateCreatePost = [
-  body('title')
+  body("message")
     .trim()
     .notEmpty()
-    .withMessage('Title is required')
-    .isLength({ min: 1, max: 200 })
-    .withMessage('Title must be between 1 and 200 characters'),
-
-  body('content')
-    .trim()
-    .notEmpty()
-    .withMessage('Content is required')
+    .withMessage("Message is required")
     .isLength({ min: 1, max: 10000 })
-    .withMessage('Content must be between 1 and 10000 characters'),
+    .withMessage("Message must be between 1 and 10000 characters"),
 
-  body('board')
+  body("board")
     .trim()
     .notEmpty()
-    .withMessage('Board is required')
+    .withMessage("Board is required")
     .isLength({ min: 1, max: 50 })
-    .withMessage('Board name must be between 1 and 50 characters'),
+    .withMessage("Board name must be between 1 and 50 characters"),
 
-  body('author')
-    .optional()
+  body("user")
     .trim()
-    .isLength({ max: 100 })
-    .withMessage('Author name must not exceed 100 characters')
+    .notEmpty()
+    .withMessage("User is required")
+    .isLength({ min: 1, max: 100 })
+    .withMessage("User name must be between 1 and 100 characters"),
+
+  body("parent_post_id")
+    .optional()
+    .isInt()
+    .withMessage("Parent post ID must be an integer"),
 ];
 
 /**
  * Validation rules for getting posts by board
  */
 const validateGetPosts = [
-  query('board')
+  query("board")
     .trim()
     .notEmpty()
-    .withMessage('Board parameter is required')
+    .withMessage("Board parameter is required")
     .isLength({ min: 1, max: 50 })
-    .withMessage('Board name must be between 1 and 50 characters')
+    .withMessage("Board name must be between 1 and 50 characters"),
 ];
 
 /**
@@ -53,10 +52,10 @@ const handleValidationErrors = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      errors: errors.array().map(err => ({
+      errors: errors.array().map((err) => ({
         field: err.path || err.param,
-        message: err.msg
-      }))
+        message: err.msg,
+      })),
     });
   }
 
@@ -66,5 +65,5 @@ const handleValidationErrors = (req, res, next) => {
 module.exports = {
   validateCreatePost,
   validateGetPosts,
-  handleValidationErrors
+  handleValidationErrors,
 };

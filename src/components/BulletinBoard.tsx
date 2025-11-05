@@ -3,10 +3,10 @@
  * Displays SYSOP-13 bulletins in a retro terminal style
  */
 
-import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import { api } from '../services/api';
-import type { Post } from '../types/post';
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+import { api } from "../services/api";
+import type { Post } from "../types/post";
 
 interface BulletinBoardProps {
   limit?: number;
@@ -16,17 +16,18 @@ interface BulletinBoardProps {
 
 const BulletinContainer = styled.div<{ $compact?: boolean }>`
   background: rgba(0, 0, 0, 0.8);
-  border: 2px solid ${props => props.theme.colors?.primary || '#00ff00'};
-  padding: ${props => props.$compact ? '0.5rem' : '1rem'};
-  margin: ${props => props.$compact ? '0.5rem 0' : '1rem 0'};
-  font-family: 'Courier New', monospace;
-  color: ${props => props.theme.colors?.primary || '#00ff00'};
+  border: 2px solid ${(props) => props.theme.colors?.primary || "#00ff00"};
+  padding: ${(props) => (props.$compact ? "0.5rem" : "1rem")};
+  margin: ${(props) => (props.$compact ? "0.5rem 0" : "1rem 0")};
+  font-family: "Courier New", monospace;
+  color: ${(props) => props.theme.colors?.primary || "#00ff00"};
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
 `;
 
 const BulletinHeader = styled.div`
   text-align: center;
-  border-bottom: 1px solid ${props => props.theme.colors?.primary || '#00ff00'};
+  border-bottom: 1px solid
+    ${(props) => props.theme.colors?.primary || "#00ff00"};
   padding-bottom: 0.5rem;
   margin-bottom: 1rem;
   font-weight: bold;
@@ -37,8 +38,10 @@ const BulletinHeader = styled.div`
 const BulletinItem = styled.div<{ $pinned?: boolean }>`
   margin-bottom: 1rem;
   padding: 0.75rem;
-  border-left: 3px solid ${props => props.$pinned ? '#ffff00' : 'transparent'};
-  background: ${props => props.$pinned ? 'rgba(255, 255, 0, 0.05)' : 'transparent'};
+  border-left: 3px solid
+    ${(props) => (props.$pinned ? "#ffff00" : "transparent")};
+  background: ${(props) =>
+    props.$pinned ? "rgba(255, 255, 0, 0.05)" : "transparent"};
 
   &:last-child {
     margin-bottom: 0;
@@ -54,13 +57,18 @@ const BulletinMeta = styled.div`
 `;
 
 const BulletinType = styled.span<{ $type?: string }>`
-  color: ${props => {
+  color: ${(props) => {
     switch (props.$type) {
-      case 'daily': return '#00ffff';
-      case 'announcement': return '#ffff00';
-      case 'lore': return '#ff00ff';
-      case 'system': return '#ff0000';
-      default: return '#00ff00';
+      case "daily":
+        return "#00ffff";
+      case "announcement":
+        return "#ffff00";
+      case "lore":
+        return "#ff00ff";
+      case "system":
+        return "#ff0000";
+      default:
+        return "#00ff00";
     }
   }};
   text-transform: uppercase;
@@ -103,7 +111,7 @@ const NoBulletinsMessage = styled.div`
 export const BulletinBoard: React.FC<BulletinBoardProps> = ({
   limit = 10,
   showLatestOnly = false,
-  compact = false
+  compact = false,
 }) => {
   const [bulletins, setBulletins] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,13 +132,13 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({
       } else {
         const data = await api.getBulletins({
           limit,
-          includeUnpinned: true
+          includeUnpinned: true,
         });
         setBulletins(data);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load bulletins');
-      console.error('Error loading bulletins:', err);
+      setError(err instanceof Error ? err.message : "Failed to load bulletins");
+      console.error("Error loading bulletins:", err);
     } finally {
       setLoading(false);
     }
@@ -138,13 +146,13 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
+    return date.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
     });
   };
 
@@ -152,7 +160,7 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({
     return (
       <BulletinContainer $compact={compact}>
         <BulletinHeader>
-          {showLatestOnly ? '[ Latest Bulletin ]' : '[ System Bulletins ]'}
+          {showLatestOnly ? "[ Latest Bulletin ]" : "[ System Bulletins ]"}
         </BulletinHeader>
         <LoadingMessage>Loading bulletins...</LoadingMessage>
       </BulletinContainer>
@@ -163,7 +171,7 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({
     return (
       <BulletinContainer $compact={compact}>
         <BulletinHeader>
-          {showLatestOnly ? '[ Latest Bulletin ]' : '[ System Bulletins ]'}
+          {showLatestOnly ? "[ Latest Bulletin ]" : "[ System Bulletins ]"}
         </BulletinHeader>
         <ErrorMessage>Error: {error}</ErrorMessage>
       </BulletinContainer>
@@ -174,7 +182,7 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({
     return (
       <BulletinContainer $compact={compact}>
         <BulletinHeader>
-          {showLatestOnly ? '[ Latest Bulletin ]' : '[ System Bulletins ]'}
+          {showLatestOnly ? "[ Latest Bulletin ]" : "[ System Bulletins ]"}
         </BulletinHeader>
         <NoBulletinsMessage>No bulletins available</NoBulletinsMessage>
       </BulletinContainer>
@@ -184,20 +192,23 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({
   return (
     <BulletinContainer $compact={compact}>
       <BulletinHeader>
-        {showLatestOnly ? '[ Latest Bulletin from SYSOP-13 ]' : '[ System Bulletins ]'}
+        {showLatestOnly
+          ? "[ Latest Bulletin from SYSOP-13 ]"
+          : "[ System Bulletins ]"}
       </BulletinHeader>
       {bulletins.map((bulletin) => (
-        <BulletinItem key={bulletin.id} $pinned={bulletin.is_pinned}>
+        <BulletinItem key={bulletin.id} $pinned={!!bulletin.is_pinned}>
           <BulletinMeta>
             <div>
               {bulletin.is_pinned && <PinIndicator>[PINNED]</PinIndicator>}
               <BulletinType $type={bulletin.bulletin_type || undefined}>
-                [{bulletin.bulletin_type || 'bulletin'}]
-              </BulletinType>
-              {' '}
+                [{bulletin.bulletin_type || "bulletin"}]
+              </BulletinType>{" "}
               <strong>{bulletin.user}</strong>
             </div>
-            <BulletinTimestamp>{formatTimestamp(bulletin.timestamp)}</BulletinTimestamp>
+            <BulletinTimestamp>
+              {formatTimestamp(bulletin.timestamp)}
+            </BulletinTimestamp>
           </BulletinMeta>
           <BulletinMessage>{bulletin.message}</BulletinMessage>
         </BulletinItem>

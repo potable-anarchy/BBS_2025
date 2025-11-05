@@ -1,11 +1,11 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+const Database = require("better-sqlite3");
+const path = require("path");
+const fs = require("fs");
 
 class DatabaseManager {
   constructor() {
     this.db = null;
-    this.dbPath = path.join(__dirname, '..', 'data', 'bbs.db');
+    this.dbPath = path.join(__dirname, "..", "data", "bbs.db");
   }
 
   /**
@@ -21,16 +21,16 @@ class DatabaseManager {
 
       // Create or open database
       this.db = new Database(this.dbPath, {
-        verbose: process.env.NODE_ENV === 'development' ? console.log : null
+        verbose: process.env.NODE_ENV === "development" ? console.log : null,
       });
 
       // Enable foreign keys
-      this.db.pragma('foreign_keys = ON');
+      this.db.pragma("foreign_keys = ON");
 
       // Set WAL mode for better concurrency
-      this.db.pragma('journal_mode = WAL');
+      this.db.pragma("journal_mode = WAL");
 
-      console.log('Database connection established:', this.dbPath);
+      console.log("Database connection established:", this.dbPath);
 
       // Run migrations
       this.runMigrations();
@@ -40,7 +40,7 @@ class DatabaseManager {
 
       return this.db;
     } catch (error) {
-      console.error('Failed to initialize database:', error);
+      console.error("Failed to initialize database:", error);
       throw error;
     }
   }
@@ -51,23 +51,23 @@ class DatabaseManager {
   seedDefaultData() {
     try {
       // Check if boards table is empty
-      const boardCount = this.queryOne('SELECT COUNT(*) as count FROM boards');
+      const boardCount = this.queryOne("SELECT COUNT(*) as count FROM boards");
 
       if (boardCount && boardCount.count === 0) {
-        console.log('Database is empty, seeding default boards...');
+        console.log("Database is empty, seeding default boards...");
 
         const defaultBoards = [
-          { name: 'general', description: 'General discussion board' },
-          { name: 'technology', description: 'Technology and programming' },
-          { name: 'random', description: 'Random topics' }
+          { name: "general", description: "General discussion board" },
+          { name: "technology", description: "Technology and programming" },
+          { name: "random", description: "Random topics" },
         ];
 
         const seedTransaction = this.transaction(() => {
-          defaultBoards.forEach(board => {
-            this.run(
-              'INSERT INTO boards (name, description) VALUES (?, ?)',
-              [board.name, board.description]
-            );
+          defaultBoards.forEach((board) => {
+            this.run("INSERT INTO boards (name, description) VALUES (?, ?)", [
+              board.name,
+              board.description,
+            ]);
           });
         });
 
@@ -75,7 +75,7 @@ class DatabaseManager {
         console.log(`✓ Seeded ${defaultBoards.length} default boards`);
       }
     } catch (error) {
-      console.error('Error seeding default data:', error);
+      console.error("Error seeding default data:", error);
     }
   }
 
@@ -83,26 +83,27 @@ class DatabaseManager {
    * Run all pending migrations
    */
   runMigrations() {
-    const migrationsDir = path.join(__dirname, 'migrations');
+    const migrationsDir = path.join(__dirname, "migrations");
 
     if (!fs.existsSync(migrationsDir)) {
-      console.warn('Migrations directory not found');
+      console.warn("Migrations directory not found");
       return;
     }
 
-    const migrationFiles = fs.readdirSync(migrationsDir)
-      .filter(file => file.endsWith('.sql'))
+    const migrationFiles = fs
+      .readdirSync(migrationsDir)
+      .filter((file) => file.endsWith(".sql"))
       .sort();
 
     console.log(`Found ${migrationFiles.length} migration(s)`);
 
-    migrationFiles.forEach(file => {
+    migrationFiles.forEach((file) => {
       const migrationPath = path.join(migrationsDir, file);
-      const migrationName = file.replace('.sql', '');
+      const migrationName = file.replace(".sql", "");
 
       try {
         // Read migration SQL
-        const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+        const migrationSQL = fs.readFileSync(migrationPath, "utf8");
 
         // Execute migration in a transaction
         const migrate = this.db.transaction(() => {
@@ -113,10 +114,13 @@ class DatabaseManager {
         console.log(`✓ Applied migration: ${migrationName}`);
       } catch (error) {
         // If migration already applied or error, log and continue
-        if (error.message.includes('UNIQUE constraint failed')) {
+        if (error.message.includes("UNIQUE constraint failed")) {
           console.log(`- Migration already applied: ${migrationName}`);
         } else {
-          console.error(`✗ Failed to apply migration ${migrationName}:`, error.message);
+          console.error(
+            `✗ Failed to apply migration ${migrationName}:`,
+            error.message,
+          );
         }
       }
     });
@@ -127,7 +131,7 @@ class DatabaseManager {
    */
   getDB() {
     if (!this.db) {
-      throw new Error('Database not initialized. Call initialize() first.');
+      throw new Error("Database not initialized. Call initialize() first.");
     }
     return this.db;
   }
@@ -138,7 +142,7 @@ class DatabaseManager {
   close() {
     if (this.db) {
       this.db.close();
-      console.log('Database connection closed');
+      console.log("Database connection closed");
       this.db = null;
     }
   }
@@ -179,30 +183,30 @@ class DatabaseManager {
    * Get all boards
    */
   getAllBoards() {
-    return this.query('SELECT * FROM boards ORDER BY created_at DESC');
+    return this.query("SELECT * FROM boards ORDER BY created_at DESC");
   }
 
   /**
    * Get board by ID
    */
   getBoardById(boardId) {
-    return this.queryOne('SELECT * FROM boards WHERE id = ?', [boardId]);
+    return this.queryOne("SELECT * FROM boards WHERE id = ?", [boardId]);
   }
 
   /**
    * Get board by name
    */
   getBoardByName(name) {
-    return this.queryOne('SELECT * FROM boards WHERE name = ?', [name]);
+    return this.queryOne("SELECT * FROM boards WHERE name = ?", [name]);
   }
 
   /**
    * Create a new board
    */
-  createBoard(name, description = '') {
+  createBoard(name, description = "") {
     const result = this.run(
-      'INSERT INTO boards (name, description) VALUES (?, ?)',
-      [name, description]
+      "INSERT INTO boards (name, description) VALUES (?, ?)",
+      [name, description],
     );
     return { id: result.lastInsertRowid, name, description };
   }
@@ -212,8 +216,8 @@ class DatabaseManager {
    */
   updateBoard(boardId, name, description) {
     return this.run(
-      'UPDATE boards SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [name, description, boardId]
+      "UPDATE boards SET name = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [name, description, boardId],
     );
   }
 
@@ -224,7 +228,7 @@ class DatabaseManager {
   /**
    * Create a new post
    */
-  createPost(boardId, user, message, parentPostId = null) {
+  createPost(boardId, user, message, parentPostId = null, options = {}) {
     // Validate parent post exists if provided
     if (parentPostId !== null) {
       const parentPost = this.getPostById(parentPostId);
@@ -232,13 +236,30 @@ class DatabaseManager {
         throw new Error(`Parent post with ID ${parentPostId} not found`);
       }
       if (parentPost.board_id !== boardId) {
-        throw new Error('Parent post must be on the same board');
+        throw new Error("Parent post must be on the same board");
       }
     }
 
+    // Extract bulletin-specific options
+    const {
+      is_bulletin = 0,
+      is_pinned = 0,
+      priority = 0,
+      bulletin_type = null,
+    } = options;
+
     const result = this.run(
-      'INSERT INTO posts (board_id, user, message, parent_post_id) VALUES (?, ?, ?, ?)',
-      [boardId, user, message, parentPostId]
+      "INSERT INTO posts (board_id, user, message, parent_post_id, is_bulletin, is_pinned, priority, bulletin_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        boardId,
+        user,
+        message,
+        parentPostId,
+        is_bulletin,
+        is_pinned,
+        priority,
+        bulletin_type,
+      ],
     );
 
     return this.getPostById(result.lastInsertRowid);
@@ -248,7 +269,7 @@ class DatabaseManager {
    * Get post by ID
    */
   getPostById(postId) {
-    return this.queryOne('SELECT * FROM posts WHERE id = ?', [postId]);
+    return this.queryOne("SELECT * FROM posts WHERE id = ?", [postId]);
   }
 
   /**
@@ -260,7 +281,7 @@ class DatabaseManager {
        WHERE board_id = ? AND parent_post_id IS NULL
        ORDER BY timestamp DESC
        LIMIT ? OFFSET ?`,
-      [boardId, limit, offset]
+      [boardId, limit, offset],
     );
   }
 
@@ -273,7 +294,7 @@ class DatabaseManager {
        WHERE board_id = ?
        ORDER BY timestamp ASC
        LIMIT ? OFFSET ?`,
-      [boardId, limit, offset]
+      [boardId, limit, offset],
     );
   }
 
@@ -286,7 +307,7 @@ class DatabaseManager {
        WHERE parent_post_id = ?
        ORDER BY timestamp ASC
        LIMIT ?`,
-      [postId, limit]
+      [postId, limit],
     );
   }
 
@@ -305,7 +326,7 @@ class DatabaseManager {
         INNER JOIN thread t ON p.parent_post_id = t.id
       )
       SELECT * FROM thread ORDER BY timestamp ASC`,
-      [postId]
+      [postId],
     );
     return posts;
   }
@@ -319,13 +340,13 @@ class DatabaseManager {
 
     // Build a map of post ID to post object with empty replies array
     const postMap = {};
-    allPosts.forEach(post => {
+    allPosts.forEach((post) => {
       postMap[post.id] = { ...post, replies: [] };
     });
 
     // Build the tree structure
     let rootPost = null;
-    allPosts.forEach(post => {
+    allPosts.forEach((post) => {
       if (post.id === postId) {
         rootPost = postMap[post.id];
       } else if (post.parent_post_id && postMap[post.parent_post_id]) {
@@ -348,7 +369,7 @@ class DatabaseManager {
         INNER JOIN thread t ON p.parent_post_id = t.id
       )
       SELECT COUNT(*) as count FROM thread`,
-      [postId]
+      [postId],
     );
     return result ? result.count : 0;
   }
@@ -357,7 +378,7 @@ class DatabaseManager {
    * Delete a post (and all its replies due to CASCADE)
    */
   deletePost(postId) {
-    return this.run('DELETE FROM posts WHERE id = ?', [postId]);
+    return this.run("DELETE FROM posts WHERE id = ?", [postId]);
   }
 
   /**
@@ -371,7 +392,7 @@ class DatabaseManager {
        WHERE p.user = ?
        ORDER BY p.timestamp DESC
        LIMIT ?`,
-      [username, limit]
+      [username, limit],
     );
   }
 
@@ -386,11 +407,11 @@ class DatabaseManager {
                WHERE p.message LIKE ?`;
 
     if (boardId !== null) {
-      sql += ' AND p.board_id = ?';
+      sql += " AND p.board_id = ?";
       params.push(boardId);
     }
 
-    sql += ' ORDER BY p.timestamp DESC LIMIT ?';
+    sql += " ORDER BY p.timestamp DESC LIMIT ?";
     params.push(limit);
 
     return this.query(sql, params);

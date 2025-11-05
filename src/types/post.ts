@@ -19,10 +19,10 @@ export interface Post {
   parent_post_id: number | null;
   reply_count?: number;
   board_name?: string;
-  is_bulletin?: boolean;
-  is_pinned?: boolean;
+  is_bulletin?: number | boolean;
+  is_pinned?: number | boolean;
   priority?: number;
-  bulletin_type?: 'daily' | 'announcement' | 'lore' | 'system' | null;
+  bulletin_type?: "daily" | "announcement" | "lore" | "system" | null;
 }
 
 export interface ThreadPost extends Post {
@@ -41,7 +41,7 @@ export interface CreatePostRequest {
   is_bulletin?: boolean;
   is_pinned?: boolean;
   priority?: number;
-  bulletin_type?: 'daily' | 'announcement' | 'lore' | 'system' | null;
+  bulletin_type?: "daily" | "announcement" | "lore" | "system" | null;
 }
 
 export interface PostListResponse {
@@ -102,7 +102,7 @@ export interface BulletinResponse {
 
 export interface CreateBulletinRequest {
   message: string;
-  bulletin_type: 'daily' | 'announcement' | 'lore' | 'system';
+  bulletin_type: "daily" | "announcement" | "lore" | "system";
   priority?: number;
   is_pinned?: boolean;
 }

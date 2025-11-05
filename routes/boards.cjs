@@ -1,27 +1,31 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { sanitizeMiddleware } = require('../middleware/sanitize.cjs');
-const { validateCreatePost, validateGetPosts, handleValidationErrors } = require('../middleware/validate.cjs');
-const db = require('../database/db.cjs');
-const sysop = require('../services/sysopInstance.cjs');
+const { sanitizeMiddleware } = require("../middleware/sanitize.cjs");
+const {
+  validateCreatePost,
+  validateGetPosts,
+  handleValidationErrors,
+} = require("../middleware/validate.cjs");
+const db = require("../database/db.cjs");
+const sysop = require("../services/sysopInstance.cjs");
 
 /**
  * GET /boards
  * Get all available boards
  */
-router.get('/boards', sanitizeMiddleware, (req, res) => {
+router.get("/boards", sanitizeMiddleware, (req, res) => {
   try {
     const boards = db.getAllBoards();
     res.json({
       success: true,
       data: boards,
-      count: boards.length
+      count: boards.length,
     });
   } catch (error) {
-    console.error('Error fetching boards:', error);
+    console.error("Error fetching boards:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -30,7 +34,7 @@ router.get('/boards', sanitizeMiddleware, (req, res) => {
  * GET /boards/:id
  * Get a specific board by ID
  */
-router.get('/boards/:id', sanitizeMiddleware, (req, res) => {
+router.get("/boards/:id", sanitizeMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const board = db.getBoardById(parseInt(id));
@@ -38,19 +42,19 @@ router.get('/boards/:id', sanitizeMiddleware, (req, res) => {
     if (!board) {
       return res.status(404).json({
         success: false,
-        error: 'Board not found'
+        error: "Board not found",
       });
     }
 
     res.json({
       success: true,
-      data: board
+      data: board,
     });
   } catch (error) {
-    console.error('Error fetching board:', error);
+    console.error("Error fetching board:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -59,36 +63,36 @@ router.get('/boards/:id', sanitizeMiddleware, (req, res) => {
  * POST /boards
  * Create a new board
  */
-router.post('/boards', sanitizeMiddleware, (req, res) => {
+router.post("/boards", sanitizeMiddleware, (req, res) => {
   try {
     const { name, description } = req.body;
 
     if (!name || name.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'Board name is required'
+        error: "Board name is required",
       });
     }
 
-    const board = db.createBoard(name.trim(), description || '');
+    const board = db.createBoard(name.trim(), description || "");
 
     res.status(201).json({
       success: true,
       data: board,
-      message: 'Board created successfully'
+      message: "Board created successfully",
     });
   } catch (error) {
-    if (error.message && error.message.includes('UNIQUE constraint failed')) {
+    if (error.message && error.message.includes("UNIQUE constraint failed")) {
       return res.status(409).json({
         success: false,
-        error: 'Board with this name already exists'
+        error: "Board with this name already exists",
       });
     }
 
-    console.error('Error creating board:', error);
+    console.error("Error creating board:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -97,59 +101,76 @@ router.post('/boards', sanitizeMiddleware, (req, res) => {
  * GET /posts?board=:name&limit=:limit&offset=:offset&includeReplies=:boolean
  * Get posts for a specific board (by name or ID)
  */
-router.get('/posts', sanitizeMiddleware, validateGetPosts, handleValidationErrors, (req, res) => {
-  try {
-    const { board, limit = 100, offset = 0, includeReplies = 'false' } = req.query;
+router.get(
+  "/posts",
+  sanitizeMiddleware,
+  validateGetPosts,
+  handleValidationErrors,
+  (req, res) => {
+    try {
+      const {
+        board,
+        limit = 100,
+        offset = 0,
+        includeReplies = "false",
+      } = req.query;
 
-    // Find board by name or ID
-    let boardData = null;
-    const boardIdNum = parseInt(board);
+      // Find board by name or ID
+      let boardData = null;
+      const boardIdNum = parseInt(board);
 
-    if (!isNaN(boardIdNum)) {
-      boardData = db.getBoardById(boardIdNum);
-    } else {
-      boardData = db.getBoardByName(board);
-    }
+      if (!isNaN(boardIdNum)) {
+        boardData = db.getBoardById(boardIdNum);
+      } else {
+        boardData = db.getBoardByName(board);
+      }
 
-    if (!boardData) {
-      return res.status(404).json({
+      if (!boardData) {
+        return res.status(404).json({
+          success: false,
+          error: "Board not found",
+        });
+      }
+
+      // Get posts based on includeReplies flag
+      const posts =
+        includeReplies === "true"
+          ? db.getAllPostsByBoard(
+              boardData.id,
+              parseInt(limit),
+              parseInt(offset),
+            )
+          : db.getPostsByBoard(boardData.id, parseInt(limit), parseInt(offset));
+
+      // Add reply counts for each top-level post
+      const postsWithCounts = posts.map((post) => ({
+        ...post,
+        reply_count:
+          post.parent_post_id === null ? db.getReplyCount(post.id) : 0,
+      }));
+
+      res.json({
+        success: true,
+        data: postsWithCounts,
+        count: postsWithCounts.length,
+        board: boardData.name,
+        board_id: boardData.id,
+      });
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      res.status(500).json({
         success: false,
-        error: 'Board not found'
+        error: "Internal server error",
       });
     }
-
-    // Get posts based on includeReplies flag
-    const posts = includeReplies === 'true'
-      ? db.getAllPostsByBoard(boardData.id, parseInt(limit), parseInt(offset))
-      : db.getPostsByBoard(boardData.id, parseInt(limit), parseInt(offset));
-
-    // Add reply counts for each top-level post
-    const postsWithCounts = posts.map(post => ({
-      ...post,
-      reply_count: post.parent_post_id === null ? db.getReplyCount(post.id) : 0
-    }));
-
-    res.json({
-      success: true,
-      data: postsWithCounts,
-      count: postsWithCounts.length,
-      board: boardData.name,
-      board_id: boardData.id
-    });
-  } catch (error) {
-    console.error('Error fetching posts:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
+  },
+);
 
 /**
  * GET /posts/:id
  * Get a specific post by ID
  */
-router.get('/posts/:id', sanitizeMiddleware, (req, res) => {
+router.get("/posts/:id", sanitizeMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const post = db.getPostById(parseInt(id));
@@ -157,25 +178,25 @@ router.get('/posts/:id', sanitizeMiddleware, (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        error: 'Post not found'
+        error: "Post not found",
       });
     }
 
     // Add reply count
     const postWithCount = {
       ...post,
-      reply_count: db.getReplyCount(post.id)
+      reply_count: db.getReplyCount(post.id),
     };
 
     res.json({
       success: true,
-      data: postWithCount
+      data: postWithCount,
     });
   } catch (error) {
-    console.error('Error fetching post:', error);
+    console.error("Error fetching post:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -184,7 +205,7 @@ router.get('/posts/:id', sanitizeMiddleware, (req, res) => {
  * GET /posts/:id/replies
  * Get direct replies to a post
  */
-router.get('/posts/:id/replies', sanitizeMiddleware, (req, res) => {
+router.get("/posts/:id/replies", sanitizeMiddleware, (req, res) => {
   try {
     const { id } = req.params;
     const { limit = 100 } = req.query;
@@ -193,29 +214,29 @@ router.get('/posts/:id/replies', sanitizeMiddleware, (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        error: 'Post not found'
+        error: "Post not found",
       });
     }
 
     const replies = db.getReplies(parseInt(id), parseInt(limit));
 
     // Add reply counts for each reply
-    const repliesWithCounts = replies.map(reply => ({
+    const repliesWithCounts = replies.map((reply) => ({
       ...reply,
-      reply_count: db.getReplyCount(reply.id)
+      reply_count: db.getReplyCount(reply.id),
     }));
 
     res.json({
       success: true,
       data: repliesWithCounts,
       count: repliesWithCounts.length,
-      parent_post_id: parseInt(id)
+      parent_post_id: parseInt(id),
     });
   } catch (error) {
-    console.error('Error fetching replies:', error);
+    console.error("Error fetching replies:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -224,7 +245,7 @@ router.get('/posts/:id/replies', sanitizeMiddleware, (req, res) => {
  * GET /posts/:id/thread
  * Get full thread (post + all nested replies) as a flat array
  */
-router.get('/posts/:id/thread', sanitizeMiddleware, (req, res) => {
+router.get("/posts/:id/thread", sanitizeMiddleware, (req, res) => {
   try {
     const { id } = req.params;
 
@@ -232,7 +253,7 @@ router.get('/posts/:id/thread', sanitizeMiddleware, (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        error: 'Post not found'
+        error: "Post not found",
       });
     }
 
@@ -242,13 +263,13 @@ router.get('/posts/:id/thread', sanitizeMiddleware, (req, res) => {
       success: true,
       data: thread,
       count: thread.length,
-      root_post_id: parseInt(id)
+      root_post_id: parseInt(id),
     });
   } catch (error) {
-    console.error('Error fetching thread:', error);
+    console.error("Error fetching thread:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -257,7 +278,7 @@ router.get('/posts/:id/thread', sanitizeMiddleware, (req, res) => {
  * GET /posts/:id/thread/hierarchy
  * Get full thread as a nested hierarchy
  */
-router.get('/posts/:id/thread/hierarchy', sanitizeMiddleware, (req, res) => {
+router.get("/posts/:id/thread/hierarchy", sanitizeMiddleware, (req, res) => {
   try {
     const { id } = req.params;
 
@@ -265,7 +286,7 @@ router.get('/posts/:id/thread/hierarchy', sanitizeMiddleware, (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        error: 'Post not found'
+        error: "Post not found",
       });
     }
 
@@ -274,21 +295,21 @@ router.get('/posts/:id/thread/hierarchy', sanitizeMiddleware, (req, res) => {
     res.json({
       success: true,
       data: hierarchy,
-      root_post_id: parseInt(id)
+      root_post_id: parseInt(id),
     });
   } catch (error) {
-    console.error('Error fetching thread hierarchy:', error);
+    console.error("Error fetching thread hierarchy:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
 
 // API authentication middleware for automated posts
 const apiAuthMiddleware = (req, res, next) => {
-  const apiSecret = req.headers['x-api-secret'];
-  
+  const apiSecret = req.headers["x-api-secret"];
+
   // If API secret is provided, validate it
   if (apiSecret) {
     if (apiSecret === process.env.BBS_API_SECRET) {
@@ -296,11 +317,11 @@ const apiAuthMiddleware = (req, res, next) => {
     } else {
       return res.status(401).json({
         success: false,
-        error: 'Invalid API secret'
+        error: "Invalid API secret",
       });
     }
   }
-  
+
   next();
 };
 
@@ -309,100 +330,124 @@ const apiAuthMiddleware = (req, res, next) => {
  * Create a new post or reply
  * Body: { board, user, message, parent_post_id }
  */
-router.post('/posts', apiAuthMiddleware, sanitizeMiddleware, validateCreatePost, handleValidationErrors, (req, res) => {
-  try {
-    const { board, user, message, parent_post_id } = req.body;
+router.post(
+  "/posts",
+  apiAuthMiddleware,
+  sanitizeMiddleware,
+  validateCreatePost,
+  handleValidationErrors,
+  (req, res) => {
+    try {
+      const { board, user, message, parent_post_id } = req.body;
 
-    // Find board by name or ID
-    let boardData = null;
-    const boardIdNum = parseInt(board);
+      // Find board by name or ID
+      let boardData = null;
+      const boardIdNum = parseInt(board);
 
-    if (!isNaN(boardIdNum)) {
-      boardData = db.getBoardById(boardIdNum);
-    } else {
-      boardData = db.getBoardByName(board);
-    }
+      if (!isNaN(boardIdNum)) {
+        boardData = db.getBoardById(boardIdNum);
+      } else {
+        boardData = db.getBoardByName(board);
+      }
 
-    if (!boardData) {
-      return res.status(404).json({
+      if (!boardData) {
+        return res.status(404).json({
+          success: false,
+          error: "Board not found",
+        });
+      }
+
+      if (!user || user.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "User is required",
+        });
+      }
+
+      if (!message || message.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Message is required",
+        });
+      }
+
+      // Parse parent_post_id if provided
+      const parentPostId = parent_post_id ? parseInt(parent_post_id) : null;
+
+      // Extract bulletin-specific options if provided
+      const bulletinOptions = {};
+      if (req.body.is_bulletin !== undefined)
+        bulletinOptions.is_bulletin = req.body.is_bulletin ? 1 : 0;
+      if (req.body.is_pinned !== undefined)
+        bulletinOptions.is_pinned = req.body.is_pinned ? 1 : 0;
+      if (req.body.priority !== undefined)
+        bulletinOptions.priority = parseInt(req.body.priority) || 0;
+      if (req.body.bulletin_type !== undefined)
+        bulletinOptions.bulletin_type = req.body.bulletin_type;
+
+      // Create post
+      const newPost = db.createPost(
+        boardData.id,
+        user.trim(),
+        message.trim(),
+        parentPostId,
+        bulletinOptions,
+      );
+
+      // Trigger SysOp AI on new post (only for top-level posts, not replies, and not for API posts from SYSOP-13)
+      if (!parentPostId && !(req.isApiAuthenticated && user === "SYSOP-13")) {
+        sysop
+          .onNewPost(newPost.user, boardData.name, newPost.message)
+          .then((response) => {
+            // If SysOp decides to respond, create a post from SYSOP-13
+            if (response) {
+              try {
+                db.createPost(
+                  boardData.id,
+                  "SYSOP-13",
+                  response,
+                  newPost.id, // Reply to the original post
+                );
+                console.log(`SYSOP-13 responded to post ${newPost.id}`);
+              } catch (error) {
+                console.error("Error creating SYSOP-13 response post:", error);
+              }
+            }
+          })
+          .catch((error) => {
+            console.error("Error in SysOp new post hook:", error);
+          });
+      }
+
+      res.status(201).json({
+        success: true,
+        data: newPost,
+        message: parentPostId
+          ? "Reply created successfully"
+          : "Post created successfully",
+      });
+    } catch (error) {
+      if (error.message && error.message.includes("Parent post")) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+        });
+      }
+
+      console.error("Error creating post:", error);
+      res.status(500).json({
         success: false,
-        error: 'Board not found'
+        error: "Internal server error",
       });
     }
-
-    if (!user || user.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'User is required'
-      });
-    }
-
-    if (!message || message.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Message is required'
-      });
-    }
-
-    // Parse parent_post_id if provided
-    const parentPostId = parent_post_id ? parseInt(parent_post_id) : null;
-
-    // Create post
-    const newPost = db.createPost(
-      boardData.id,
-      user.trim(),
-      message.trim(),
-      parentPostId
-    );
-
-    // Trigger SysOp AI on new post (only for top-level posts, not replies, and not for API posts from SYSOP-13)
-    if (!parentPostId && !(req.isApiAuthenticated && user === 'SYSOP-13')) {
-      sysop.onNewPost(newPost.user, boardData.name, newPost.message).then(response => {
-        // If SysOp decides to respond, create a post from SYSOP-13
-        if (response) {
-          try {
-            db.createPost(
-              boardData.id,
-              'SYSOP-13',
-              response,
-              newPost.id // Reply to the original post
-            );
-            console.log(`SYSOP-13 responded to post ${newPost.id}`);
-          } catch (error) {
-            console.error('Error creating SYSOP-13 response post:', error);
-          }
-        }
-      }).catch(error => {
-        console.error('Error in SysOp new post hook:', error);
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      data: newPost,
-      message: parentPostId ? 'Reply created successfully' : 'Post created successfully'
-    });
-  } catch (error) {
-    if (error.message && error.message.includes('Parent post')) {
-      return res.status(400).json({
-        success: false,
-        error: error.message
-      });
-    }
-
-    console.error('Error creating post:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
+  },
+);
 
 /**
  * DELETE /posts/:id
  * Delete a post and all its replies
  */
-router.delete('/posts/:id', sanitizeMiddleware, (req, res) => {
+router.delete("/posts/:id", sanitizeMiddleware, (req, res) => {
   try {
     const { id } = req.params;
 
@@ -410,7 +455,7 @@ router.delete('/posts/:id', sanitizeMiddleware, (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        error: 'Post not found'
+        error: "Post not found",
       });
     }
 
@@ -418,13 +463,13 @@ router.delete('/posts/:id', sanitizeMiddleware, (req, res) => {
 
     res.json({
       success: true,
-      message: 'Post and all replies deleted successfully'
+      message: "Post and all replies deleted successfully",
     });
   } catch (error) {
-    console.error('Error deleting post:', error);
+    console.error("Error deleting post:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -433,7 +478,7 @@ router.delete('/posts/:id', sanitizeMiddleware, (req, res) => {
  * GET /users/:username/posts
  * Get all posts by a specific user
  */
-router.get('/users/:username/posts', sanitizeMiddleware, (req, res) => {
+router.get("/users/:username/posts", sanitizeMiddleware, (req, res) => {
   try {
     const { username } = req.params;
     const { limit = 100 } = req.query;
@@ -444,13 +489,13 @@ router.get('/users/:username/posts', sanitizeMiddleware, (req, res) => {
       success: true,
       data: posts,
       count: posts.length,
-      username: username
+      username: username,
     });
   } catch (error) {
-    console.error('Error fetching user posts:', error);
+    console.error("Error fetching user posts:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
@@ -459,14 +504,14 @@ router.get('/users/:username/posts', sanitizeMiddleware, (req, res) => {
  * GET /search?q=:query&board=:boardId&limit=:limit
  * Search posts by message content
  */
-router.get('/search', sanitizeMiddleware, (req, res) => {
+router.get("/search", sanitizeMiddleware, (req, res) => {
   try {
     const { q, board, limit = 50 } = req.query;
 
     if (!q || q.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'Search query is required'
+        error: "Search query is required",
       });
     }
 
@@ -477,13 +522,13 @@ router.get('/search', sanitizeMiddleware, (req, res) => {
       success: true,
       data: posts,
       count: posts.length,
-      query: q.trim()
+      query: q.trim(),
     });
   } catch (error) {
-    console.error('Error searching posts:', error);
+    console.error("Error searching posts:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: "Internal server error",
     });
   }
 });
